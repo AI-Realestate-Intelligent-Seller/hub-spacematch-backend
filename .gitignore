@@ -7,3 +7,11 @@ coverage/
 .env
 .env.*
 !.env.example
+
+# Local HTTP/curl session files (contain sign-in tokens)
+cookies.txt
+*.cookies
+cookie-jar*
+
+# Local agent tooling caches
+.vercel/
