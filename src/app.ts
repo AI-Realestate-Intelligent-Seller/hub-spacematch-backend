@@ -1,8 +1,8 @@
 // Builds the Express app. Kept separate from server.ts so tests (and Vercel)
 // can import the app without opening a port.
 import cors from "cors";
-import express, { type Express } from "express";
-import helmet = require("helmet");
+import express, { type Express, type RequestHandler } from "express";
+import helmetExport from "helmet";
 import { config } from "./config/index.js";
 import { errorHandler } from "./middlewares/error-handler.js";
 import { notFoundHandler } from "./middlewares/not-found.js";
@@ -10,6 +10,13 @@ import { requestId } from "./middlewares/request-id.js";
 import { requestLogger } from "./middlewares/request-logger.js";
 import { authHandler } from "./modules/auth/auth.routes.js";
 import { moduleRoutes } from "./modules/index.js";
+
+type HelmetFactory = () => RequestHandler;
+
+// Keep the import static for Vercel's file tracer and handle CommonJS interop.
+function createHelmetMiddleware(helmet: HelmetFactory | { default: HelmetFactory }) {
+  return (typeof helmet === "function" ? helmet : helmet.default)();
+}
 
 export function createApp(): Express {
   const app = express();
@@ -19,8 +26,7 @@ export function createApp(): Express {
 
   app.use(requestId);
   app.use(requestLogger);
-  // Use Helmet's explicit CommonJS export for TypeScript resolution on Vercel.
-  app.use(helmet.default());
+  app.use(createHelmetMiddleware(helmetExport));
   app.use(
     cors({
       origin: config.cors.origins,
