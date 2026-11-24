@@ -2,7 +2,7 @@
 // can import the app without opening a port.
 import cors from "cors";
 import express, { type Express } from "express";
-import helmet from "helmet";
+import helmet = require("helmet");
 import { config } from "./config/index.js";
 import { errorHandler } from "./middlewares/error-handler.js";
 import { notFoundHandler } from "./middlewares/not-found.js";
@@ -19,7 +19,8 @@ export function createApp(): Express {
 
   app.use(requestId);
   app.use(requestLogger);
-  app.use(helmet());
+  // Use Helmet's explicit CommonJS export for TypeScript resolution on Vercel.
+  app.use(helmet.default());
   app.use(
     cors({
       origin: config.cors.origins,
