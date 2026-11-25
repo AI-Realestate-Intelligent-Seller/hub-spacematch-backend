@@ -33,20 +33,19 @@ export type SignupDecision = { allowed: true; role: repo.Role } | { allowed: fal
 
 /**
  * Who may create an account:
- *  - an open (not revoked) invitation → allowed, with the invitation's role (admin/ops/agent/guest);
- *  - otherwise an email at an allowed domain (spacematchinc.com) → allowed as "agent";
- *  - anyone else → refused.
+ *  - only emails at an allowed domain (AUTH_ALLOWED_DOMAINS, default linchpin.net); everyone else is refused;
+ *  - the role is "agent", unless an open invitation for that email gives another role (admin/ops/guest).
+ * Invitations no longer let outside domains in: they only decide the role.
  */
 export async function decideSignup(email: string): Promise<SignupDecision> {
   const normalized = email.trim().toLowerCase();
-  const invitation = await repo.findOpenInvitation(normalized);
-  if (invitation) return { allowed: true, role: invitation.role };
   const domain = normalized.split("@")[1] ?? "";
-  if (config.auth.allowedEmailDomains.includes(domain)) return { allowed: true, role: "agent" };
-  return {
-    allowed: false,
-    reason: `Sign-up is for ${config.auth.allowedEmailDomains.map(d => `@${d}`).join(", ")} emails. Ask an admin to invite you.`,
-  };
+  if (!config.auth.allowedEmailDomains.includes(domain)) {
+    const allowed = config.auth.allowedEmailDomains.map(d => `@${d}`).join(" or ");
+    return { allowed: false, reason: `Only ${allowed} email addresses can sign up.` };
+  }
+  const invitation = await repo.findOpenInvitation(normalized);
+  return { allowed: true, role: invitation?.role ?? "agent" };
 }
 
 export async function onUserCreated(email: string): Promise<void> {
@@ -123,6 +122,10 @@ export async function listInvitations(): Promise<InvitationRow[]> {
 }
 
 export async function inviteUser(actor: AuthUser, input: { email: string; role: repo.Role; note?: string }): Promise<InvitationRow> {
+  const domain = input.email.split("@")[1] ?? "";
+  if (!config.auth.allowedEmailDomains.includes(domain)) {
+    throw badRequest(`Only ${config.auth.allowedEmailDomains.map(d => `@${d}`).join(" or ")} emails can be invited.`);
+  }
   const existing = await repo.findUserByEmail(input.email);
   if (existing) throw badRequest("This person already has an account. Change their role on the Team screen instead.");
   if (input.role === "admin" && actor.role !== "admin") throw forbidden("Only admins can invite admins.");

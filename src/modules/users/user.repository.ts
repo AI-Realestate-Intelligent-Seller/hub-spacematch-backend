@@ -1,7 +1,7 @@
 // All database queries for users and invitations. Only user.service.ts calls this file.
 import { and, asc, eq, isNull, type SQL } from "drizzle-orm";
 import { getOrm } from "../../db/client.js";
-import { sessions } from "../auth/auth.model.js";
+import { accounts, sessions } from "../auth/auth.model.js";
 import { type InvitationRow, type UserRow, userInvitations, users } from "./user.model.js";
 
 export type Role = UserRow["role"];
@@ -34,6 +34,17 @@ export async function updateUser(
 ): Promise<UserRow | undefined> {
   const [row] = await getOrm().update(users).set(patch).where(eq(users.id, id)).returning();
   return row;
+}
+
+/** The stored password hash for an email (email + password account), or undefined. */
+export async function findPasswordHashByEmail(email: string): Promise<string | undefined> {
+  const [row] = await getOrm()
+    .select({ password: accounts.password })
+    .from(accounts)
+    .innerJoin(users, eq(users.id, accounts.userId))
+    .where(and(eq(users.email, email.toLowerCase()), eq(accounts.providerId, "credential")))
+    .limit(1);
+  return row?.password ?? undefined;
 }
 
 /** Marks an email as confirmed (used by the operator CLI, which is trusted). */

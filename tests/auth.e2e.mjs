@@ -11,9 +11,10 @@ const API = process.argv[2];
 const LOG = process.argv[3];
 const ORIGIN = "http://localhost:5173";
 const ts = Date.now();
-const AGENT = `zz-e2e-agent-${ts}@spacematchinc.com`;
-const ADMIN = `zz-e2e-admin-${ts}@example.com`;
+const AGENT = `zz-e2e-agent-${ts}@linchpin.net`;
+const ADMIN = `zz-e2e-admin-${ts}@linchpin.net`;
 const OUTSIDER = `zz-e2e-outsider-${ts}@example.com`;
+const INVITED_OUTSIDER = `zz-e2e-invited-${ts}@gmail.com`;
 const PW = "Test-password-123";
 const sql = postgres(process.env.DATABASE_URL, { prepare: false, max: 1, ssl: "require" });
 
@@ -71,9 +72,14 @@ try {
 
   // 4. Outsider without invitation is refused
   r = await call("POST", "/api/v1/auth/sign-up/email", { name: "Outsider", email: OUTSIDER, password: PW });
-  check("outside-domain sign-up refused", r.status === 400 && r.json?.code === "SIGNUP_NOT_ALLOWED", `status ${r.status} "${r.json?.message ?? ""}"`);
+  check("non-@linchpin.net sign-up refused", r.status === 400 && r.json?.code === "SIGNUP_NOT_ALLOWED", `status ${r.status} "${r.json?.message ?? ""}"`);
 
-  // 5. Invited admin (outside domain) signs up and gets the admin role
+  // 4b. An invitation no longer lets an outside domain in (it only sets the role)
+  await sql`insert into user_invitations (email, role, invited_by, note) values (${INVITED_OUTSIDER}, 'admin', 'e2e', 'e2e test')`;
+  r = await call("POST", "/api/v1/auth/sign-up/email", { name: "Invited Outsider", email: INVITED_OUTSIDER, password: PW });
+  check("invited @gmail.com still refused", r.status === 400 && r.json?.code === "SIGNUP_NOT_ALLOWED", `status ${r.status}`);
+
+  // 5. Invited admin (@linchpin.net) signs up and gets the admin role
   await sql`insert into user_invitations (email, role, invited_by, note) values (${ADMIN}, 'admin', 'e2e', 'e2e test')`;
   r = await call("POST", "/api/v1/auth/sign-up/email", { name: "E2E Admin", email: ADMIN, password: PW });
   check("invited admin sign-up", r.status === 200, `status ${r.status}`);
@@ -121,8 +127,8 @@ try {
   failures++; console.log("ERROR", e);
 } finally {
   // Cleanup: remove everything this test created.
-  const del = await sql`delete from users where email in (${AGENT}, ${ADMIN}, ${OUTSIDER}) returning email`;
-  await sql`delete from user_invitations where email in (${ADMIN}, ${OUTSIDER}, ${AGENT})`;
+  const del = await sql`delete from users where email in (${AGENT}, ${ADMIN}, ${OUTSIDER}, ${INVITED_OUTSIDER}) returning email`;
+  await sql`delete from user_invitations where email in (${ADMIN}, ${OUTSIDER}, ${AGENT}, ${INVITED_OUTSIDER})`;
   await sql`delete from verifications where identifier like ${"%zz-e2e-%" + ts + "%"}`;
   console.log(`cleanup: removed ${del.length} test users (sessions/accounts cascade)`);
   await sql.end();

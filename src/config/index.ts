@@ -66,14 +66,14 @@ export const config = {
   mail: {
     host: env.SMTP_HOST,
     port: env.SMTP_PORT,
-    secure: env.SMTP_SECURE ?? env.SMTP_PORT === 465,
+    secure: env.SMTP_SECURE ?? env.SMTP_SSL ?? env.SMTP_PORT === 465,
     user: env.SMTP_USER,
-    pass: env.SMTP_PASS,
-    from: env.MAIL_FROM ?? (env.SMTP_USER ? `SpaceMatch Hub <${env.SMTP_USER}>` : undefined),
+    pass: env.SMTP_PASS ?? env.SMTP_PASSWORD,
+    from: env.MAIL_FROM ?? env.SMTP_FROM ?? (env.SMTP_USER ? `SpaceMatch Hub <${env.SMTP_USER}>` : undefined),
     replyTo: env.MAIL_REPLY_TO,
     mode: env.MAIL_MODE,
     get isConfigured() {
-      return Boolean(env.SMTP_USER && env.SMTP_PASS);
+      return Boolean(env.SMTP_USER && (env.SMTP_PASS ?? env.SMTP_PASSWORD));
     },
   },
 } as const;

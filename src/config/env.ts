@@ -55,12 +55,19 @@ const EnvSchema = z.object({
   SMTP_USER: optionalString,
   SMTP_PASS: optionalString,
   MAIL_FROM: optionalString,
+  // Accepted alternative names (same meaning): SMTP_PASSWORD = SMTP_PASS, SMTP_FROM = MAIL_FROM, SMTP_SSL = SMTP_SECURE.
+  SMTP_PASSWORD: optionalString,
+  SMTP_FROM: optionalString,
+  SMTP_SSL: z
+    .enum(["true", "false", ""])
+    .optional()
+    .transform(v => (v === "true" ? true : v === "false" ? false : undefined)),
   MAIL_REPLY_TO: optionalString,
   // off = write emails to the log instead of sending. live = send through SMTP.
   MAIL_MODE: z.enum(["off", "live"]).default("off"),
 
-  // Accounts: comma-separated email domains anyone may sign up with (others need an invitation).
-  AUTH_ALLOWED_DOMAINS: z.string().default("spacematchinc.com"),
+  // Accounts: comma-separated email domains allowed to sign up. Nobody else can create an account.
+  AUTH_ALLOWED_DOMAINS: z.string().default("linchpin.net"),
   // Seed only: who becomes admin / ops when they first sign up (comma-separated emails).
   SEED_ADMIN_EMAILS: z.string().default(""),
   SEED_OPS_EMAILS: z.string().default(""),

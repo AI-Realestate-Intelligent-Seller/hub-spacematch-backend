@@ -66,7 +66,14 @@ export async function sendMail(msg: MailMessage): Promise<MailResult> {
     return { status: "sent", messageId: info.messageId };
   } catch (e) {
     const error = e instanceof Error ? e.message : String(e);
-    logger.error("mail: send failed", { tag: msg.tag, to: msg.to, error });
+    logger.error("mail: send failed", {
+      tag: msg.tag,
+      to: msg.to,
+      error,
+      // Outside production, keep the body (e.g. the sign-up code) in the log so development
+      // can continue while SMTP is broken. Never in production: bodies can hold sign-in codes.
+      ...(config.isProduction ? {} : { text: msg.text }),
+    });
     return { status: "failed", error };
   }
 }

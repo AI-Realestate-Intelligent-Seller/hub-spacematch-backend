@@ -2,13 +2,14 @@
 // database sessions in an http-only cookie. Mounted at /api/v1/auth/* (see auth.routes.ts).
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { APIError } from "better-auth/api";
+import { APIError, createAuthMiddleware } from "better-auth/api";
 import { emailOTP } from "better-auth/plugins";
 import { config } from "../../config/index.js";
 import { getOrm } from "../../db/client.js";
 import { sendMail } from "../../integrations/email/mailer.js";
 import { authCodeEmail } from "../../integrations/email/templates/auth-code.js";
 import { logger } from "../../utils/logger.js";
+import { findPasswordHashByEmail } from "../users/user.repository.js";
 import * as userService from "../users/user.service.js";
 import { users } from "../users/user.model.js";
 import { accounts, rateLimits, sessions, verifications } from "./auth.model.js";
@@ -77,6 +78,26 @@ function createAuth() {
       cookiePrefix: "smhub",
       // Behind Vercel's proxy the client IP is in x-forwarded-for (used by rate limits).
       ipAddress: { ipAddressHeaders: ["x-forwarded-for", "x-real-ip"] },
+    },
+
+    hooks: {
+      // A new password must differ from the current one (password reset by code, and change password).
+      before: createAuthMiddleware(async ctx => {
+        const samePassword = new APIError("BAD_REQUEST", {
+          code: "PASSWORD_REUSED",
+          message: "Your new password must be different from your current password.",
+        });
+        if (ctx.path === "/email-otp/reset-password") {
+          const body = ctx.body as { email?: string; password?: string } | undefined;
+          if (!body?.email || !body.password) return;
+          const hash = await findPasswordHashByEmail(body.email);
+          if (hash && (await ctx.context.password.verify({ hash, password: body.password }))) throw samePassword;
+        }
+        if (ctx.path === "/change-password") {
+          const body = ctx.body as { currentPassword?: string; newPassword?: string } | undefined;
+          if (body?.newPassword && body.newPassword === body.currentPassword) throw samePassword;
+        }
+      }),
     },
 
     databaseHooks: {
