@@ -7,6 +7,7 @@ import { drizzle, type PostgresJsDatabase } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 import { config } from "../config/index.js";
 import { serviceUnavailable } from "../utils/http-error.js";
+import { logger } from "../utils/logger.js";
 import * as schema from "./schema.js";
 
 let client: postgres.Sql | undefined;
@@ -18,6 +19,10 @@ export function getDb(): postgres.Sql {
   }
   client ??= postgres(config.database.url, {
     prepare: false,
+    // No pipelining: with more queries in flight than connections, postgres.js queues extra
+    // queries on busy connections, and through the Supabase transaction pooler those never
+    // answer (5 parallel queries on a pool of 3 hung forever). One query per connection at a time.
+    max_pipeline: 1,
     ssl: "require",
     // Small pool: on Vercel each function instance holds its own connections,
     // and the Supabase pooler multiplexes them.
@@ -34,11 +39,40 @@ export function getOrm(): PostgresJsDatabase<typeof schema> {
   return orm;
 }
 
-/** Cheap round trip used by the health check. Returns latency in ms. */
+/** Cheap round trip used by the health check. Returns latency in ms. Gives up after 5 s and
+ *  replaces the connections (a hung ping means they are dead). */
 export async function pingDb(): Promise<number> {
   const started = Date.now();
-  await getDb()`select 1`;
+  let timer: NodeJS.Timeout | undefined;
+  try {
+    await Promise.race([
+      getDb()`select 1`,
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error("Database did not answer within 5 s")), 5000);
+      }),
+    ]);
+  } catch (e) {
+    if (Date.now() - started >= 5000) resetDb("health ping timed out");
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
   return Date.now() - started;
+}
+
+/**
+ * Drops every database connection and starts fresh on the next query. Used when queries hang:
+ * a connection that died silently (network change, laptop sleep, pooler restart) is never
+ * noticed by postgres.js, so queries wait on it forever and every request piles up behind them.
+ * Queries still waiting on the old connections fail, so their requests answer with an error.
+ */
+export function resetDb(reason: string): void {
+  if (!client) return;
+  const old = client;
+  client = undefined;
+  orm = undefined;
+  logger.warn("db: resetting connections", { reason });
+  void old.end({ timeout: 0 }).catch(() => {});
 }
 
 export async function closeDb(): Promise<void> {

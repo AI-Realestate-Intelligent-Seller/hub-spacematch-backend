@@ -81,6 +81,32 @@ export async function updateMe(
   return toPublicUser(user);
 }
 
+// ---------- For other modules ----------
+
+/** An active user by id (e.g. the agent a listing is assigned to), or undefined. */
+export async function findActiveUser(id: string): Promise<Pick<UserRow, "id" | "email" | "name" | "phone" | "role"> | undefined> {
+  const u = await repo.findUserById(id);
+  return u && u.status === "active" ? { id: u.id, email: u.email, name: u.name, phone: u.phone, role: u.role } : undefined;
+}
+
+/** An active user by email (e.g. a listing's agent shown on the seller page), or undefined. */
+export async function findActiveUserByEmail(email: string): Promise<Pick<UserRow, "id" | "email" | "name" | "phone" | "role"> | undefined> {
+  const u = await repo.findUserByEmail(email);
+  return u && u.status === "active" ? { id: u.id, email: u.email, name: u.name, phone: u.phone, role: u.role } : undefined;
+}
+
+/** Emails of active admins and ops (who review and approve team items). */
+export async function listStaffEmails(): Promise<string[]> {
+  return (await repo.listUsers({ status: "active" })).filter(u => u.role === "admin" || u.role === "ops").map(u => u.email);
+}
+
+/** People a listing (or other work) can be assigned to: active agents, ops and admins. */
+export async function listAssignableAgents(): Promise<{ id: string; name: string; email: string; role: repo.Role }[]> {
+  return (await repo.listUsers({ status: "active" }))
+    .filter(u => u.role === "agent" || u.role === "ops" || u.role === "admin")
+    .map(u => ({ id: u.id, name: u.name, email: u.email, role: u.role }));
+}
+
 // ---------- Admin ----------
 
 export async function listUsers(filter: { role?: repo.Role; status?: repo.Status }): Promise<PublicUser[]> {

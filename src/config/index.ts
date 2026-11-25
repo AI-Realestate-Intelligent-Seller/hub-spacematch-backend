@@ -16,6 +16,7 @@ export const config = {
   isTest: env.NODE_ENV === "test",
   port: env.PORT,
   apiUrl: env.API_URL,
+  appUrl: env.APP_URL.replace(/\/+$/, ""),
   logLevel: env.LOG_LEVEL,
 
   cors: {

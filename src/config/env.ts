@@ -23,6 +23,8 @@ const EnvSchema = z.object({
   CORS_ORIGINS: z.string().default("http://localhost:5173"),
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).default("info"),
   API_URL: z.url().default("http://localhost:4000"),
+  // Public URL of the Hub web app (links in emails, e.g. "Open help requests").
+  APP_URL: z.url().default("http://localhost:5173"),
 
   // Database (filled in during the database step)
   DATABASE_URL: optionalUrl,

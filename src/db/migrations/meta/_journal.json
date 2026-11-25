@@ -8,6 +8,20 @@
       "when": 1795525027034,
       "tag": "0000_users_and_auth",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1795589058268,
+      "tag": "0001_listings_and_jobs",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795593226800,
+      "tag": "0002_vendors_help_email_templates",
+      "breakpoints": true
     }
   ]
 }

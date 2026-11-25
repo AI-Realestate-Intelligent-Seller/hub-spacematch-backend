@@ -8,6 +8,7 @@ import { errorHandler } from "./middlewares/error-handler.js";
 import { notFoundHandler } from "./middlewares/not-found.js";
 import { requestId } from "./middlewares/request-id.js";
 import { requestLogger } from "./middlewares/request-logger.js";
+import { requestTimeout } from "./middlewares/request-timeout.js";
 import { authHandler } from "./modules/auth/auth.routes.js";
 import { moduleRoutes } from "./modules/index.js";
 
@@ -26,6 +27,7 @@ export function createApp(): Express {
 
   app.use(requestId);
   app.use(requestLogger);
+  app.use(requestTimeout);
   app.use(createHelmetMiddleware(helmetExport));
   app.use(
     cors({
