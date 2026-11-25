@@ -17,11 +17,12 @@ export function table(rows: [string, string][]): string {
     .join("")}</table>`;
 }
 
-/** Page frame with a title, body HTML and an optional button. */
-export function shell(title: string, bodyHtml: string, cta?: { href: string; label: string }): string {
+/** Page frame with a title, body HTML and an optional button. `brand` is the small header line
+ *  (emails to sellers say "SPACEMATCH" instead of "SPACEMATCH · AGENT HUB"). */
+export function shell(title: string, bodyHtml: string, cta?: { href: string; label: string }, brand = "SPACEMATCH · AGENT HUB"): string {
   return `<!doctype html><html><body style="margin:0;background:#F7F5F1;font-family:Arial,Helvetica,sans-serif">
 <div style="max-width:560px;margin:0 auto;padding:28px 20px">
-  <div style="font-size:11px;letter-spacing:4px;color:#9C7434;font-weight:700;margin-bottom:14px">SPACEMATCH · AGENT HUB</div>
+  <div style="font-size:11px;letter-spacing:4px;color:#9C7434;font-weight:700;margin-bottom:14px">${esc(brand)}</div>
   <div style="background:#fff;border-radius:16px;padding:24px">
     <h2 style="font-family:Georgia,serif;color:#0A0A0A;margin:0 0 14px;font-size:22px">${esc(title)}</h2>
     ${bodyHtml}

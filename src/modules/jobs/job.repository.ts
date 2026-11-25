@@ -1,11 +1,52 @@
 // All database queries for the jobs table. Only job.service.ts calls this file.
-import { getOrm } from "../../db/client.js";
+import { eq } from "drizzle-orm";
+import { getDb, getOrm } from "../../db/client.js";
 import { newId } from "../../utils/id.js";
-import { jobs } from "./job.model.js";
+import { type JobRow, jobs } from "./job.model.js";
 
 export async function insertJobs(items: { kind: string; payload: Record<string, unknown>; runAt: Date }[]): Promise<void> {
   if (!items.length) return;
   await getOrm()
     .insert(jobs)
     .values(items.map(i => ({ id: newId(), ...i })));
+}
+
+/**
+ * Takes up to `limit` due jobs of these kinds and marks them running, in one statement.
+ * FOR UPDATE SKIP LOCKED: two runs at the same time never take the same job.
+ * Jobs stuck "running" for over 15 minutes (a run that died) are taken again.
+ */
+export async function claimDue(kinds: string[], limit: number): Promise<JobRow[]> {
+  if (!kinds.length) return [];
+  const rows = await getDb()<JobRow[]>`
+    UPDATE jobs SET status = 'running', attempts = attempts + 1, updated_at = now()
+    WHERE id IN (
+      SELECT id FROM jobs
+      WHERE kind IN ${getDb()(kinds)}
+        AND run_at <= now()
+        AND (status = 'queued' OR (status = 'running' AND updated_at < now() - interval '15 minutes'))
+      ORDER BY run_at
+      LIMIT ${limit}
+      FOR UPDATE SKIP LOCKED
+    )
+    RETURNING id, kind, payload, status, run_at AS "runAt", attempts, last_error AS "lastError", created_at AS "createdAt", updated_at AS "updatedAt"`;
+  return rows;
+}
+
+export async function markDone(id: string): Promise<void> {
+  await getOrm().update(jobs).set({ status: "done", lastError: null }).where(eq(jobs.id, id));
+}
+
+/** Failed: try again later (waits 5, 20, 45, 80 min), or give up after `maxAttempts`. */
+export async function markFailed(id: string, attempts: number, error: string, maxAttempts: number): Promise<void> {
+  const final = attempts >= maxAttempts;
+  await getOrm()
+    .update(jobs)
+    .set({ status: final ? "failed" : "queued", lastError: error.slice(0, 1000), runAt: new Date(Date.now() + 5 * 60_000 * attempts * attempts) })
+    .where(eq(jobs.id, id));
+}
+
+/** Jobs still waiting, by kind (shown by the cron endpoint so pending connector work is visible). */
+export async function queuedCounts(): Promise<{ kind: string; n: number }[]> {
+  return getDb()<{ kind: string; n: number }[]>`SELECT kind, count(*)::int AS n FROM jobs WHERE status = 'queued' GROUP BY kind ORDER BY kind`;
 }

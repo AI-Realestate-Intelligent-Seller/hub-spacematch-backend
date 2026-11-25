@@ -46,3 +46,8 @@ export async function revokeInvitation(req: Request, res: Response) {
   const { email } = invitationEmailParams.parse(req.params);
   res.json(await service.revokeInvitation(email));
 }
+
+/** Public: the team roster (agent pickers, business cards, meet-your-agent pages). */
+export async function roster(_req: Request, res: Response) {
+  res.json({ items: await service.listRoster() });
+}

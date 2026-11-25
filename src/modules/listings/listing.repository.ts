@@ -49,6 +49,11 @@ export async function listListings(filter: { agentEmail?: string } = {}): Promis
     .limit(LIST_LIMIT);
 }
 
+/** Listings that are on the market (Coming soon / Active), for the weekly emails. */
+export async function listLive(): Promise<ListingRow[]> {
+  return getOrm().select().from(listings).where(inArray(listings.status, ["Coming soon", "Active"]));
+}
+
 export async function updateListing(id: string, patch: Partial<Omit<NewListingRow, "id" | "createdAt">>): Promise<ListingRow | undefined> {
   const [row] = await getOrm()
     .update(listings)

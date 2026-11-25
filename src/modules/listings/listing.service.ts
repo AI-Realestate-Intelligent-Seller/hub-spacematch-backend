@@ -8,6 +8,9 @@ import { badRequest, forbidden, notFound } from "../../utils/http-error.js";
 import { randomString } from "../../utils/id.js";
 import { enqueue, enqueueMany } from "../jobs/job.service.js";
 import * as users from "../users/user.service.js";
+import { publicAds, runningCounts } from "../listing-ads/listing-ad.service.js";
+import { onListingDeleted, onListingStatus } from "../listing-social/listing-social.service.js";
+import { type DigestRow, mailFeedbackToReview, mailMondayReminders, mailPlanApproved, mailSellerWeekly, mailTuesdayNudge } from "./listing.mail.js";
 import type { LaunchStepState, ListingEventRow, ListingLinks, ListingMetricRow, ListingRow, ListingSuggestionRow } from "./listing.model.js";
 import * as repo from "./listing.repository.js";
 import { computeRules, daysOn, type RuleInput } from "./listing.rules.js";
@@ -110,7 +113,7 @@ const followUps = {
 export async function listListings(actor: AuthUser, scope: "mine" | "all") {
   const rows = isStaff(actor) && scope !== "mine" ? await repo.listListings() : await repo.listListings({ agentEmail: actor.email.toLowerCase() });
   const ids = rows.map(r => r.id);
-  const [events, week] = await Promise.all([repo.eventSummaries(ids), repo.metricsForWeek(ids, weekOf(Date.now()))]);
+  const [events, week, running] = await Promise.all([repo.eventSummaries(ids), repo.metricsForWeek(ids, weekOf(Date.now())), runningCounts(ids)]);
   const items = rows.map(l => {
     const ev = events.filter(e => e.listingId === l.id);
     const wk = week.find(m => m.listingId === l.id);
@@ -127,7 +130,7 @@ export async function listListings(actor: AuthUser, scope: "mine" | "all") {
       pending: ev.filter(e => e.status === "pending").length,
       showings: showingCount(ev),
       numbersThisWeek: !!wk && wk.enteredByEmail !== "auto",
-      adsRunning: 0, // ad campaigns are a later slice of Wave 3
+      adsRunning: running.get(l.id) ?? 0,
       sellerLastSeenAt: l.sellerLastSeenAt,
       updatedAt: l.updatedAt,
     };
@@ -232,6 +235,8 @@ export async function updateListing(actor: AuthUser, id: string, a: UpdateListin
   if (linkCleared("youtube") && l.ytAuto) p.ytAuto = null;
 
   const updated = (await repo.updateListing(id, p))!;
+  // Closed/Withdrawn archives the listing's social videos in the Reels service; back on market restores them.
+  if (p.status !== undefined && p.status !== l.status) await onListingStatus(id, l.status, p.status);
 
   // Same follow-ups Convex scheduled after an edit.
   const jobs: { kind: string; payload: Record<string, unknown> }[] = [];
@@ -264,6 +269,7 @@ export async function rotateLink(actor: AuthUser, id: string) {
 
 export async function removeListing(actor: AuthUser, id: string) {
   await mine(actor, id);
+  await onListingDeleted(id); // frees its videos in the Reels service
   await repo.deleteListing(id);
   return { ok: true };
 }
@@ -286,7 +292,9 @@ export async function toggleStep(actor: AuthUser, id: string, key: string, done:
     if (!l.liveDate) p.liveDate = new Date(now.getTime() - 5 * 36e5).toISOString().slice(0, 10); // Chicago date
     if (l.status === "Preparing" || l.status === "Coming soon") p.status = "Active";
   }
-  return toListing((await repo.updateListing(id, p))!);
+  const updated = (await repo.updateListing(id, p))!;
+  if (p.status && p.status !== l.status) await onListingStatus(id, l.status, p.status);
+  return toListing(updated);
 }
 
 export async function saveMetrics(actor: AuthUser, id: string, wk: string, input: SaveMetricsInput) {
@@ -312,6 +320,8 @@ export async function saveMetrics(actor: AuthUser, id: string, wk: string, input
   }
   if (auto.includes("reel")) values.reelViews = cur?.reelViews ?? null;
   if (auto.includes("youtube")) values.youtubeViews = cur?.youtubeViews ?? null;
+  if (auto.includes("tiktok")) values.tiktokViews = cur?.tiktokViews ?? null;
+  if (auto.includes("facebook")) values.fbViews = cur?.fbViews ?? null;
   await repo.upsertMetric(id, wk, { ...values, auto, zillowDays: auto.length ? (cur?.zillowDays ?? null) : null, enteredByEmail: actor.email.toLowerCase() });
   await repo.touchListing(id);
   return { metrics: await repo.listMetrics(id) };
@@ -392,9 +402,11 @@ export async function assignInbox(actor: AuthUser, inboxId: string, listingId: s
   const row = await repo.findInboxById(inboxId);
   if (!row) return { ok: true };
   await mine(actor, listingId);
-  await insertShowingEvent(listingId, row.parsed as ParsedShowingInput, row.externalId);
+  const ev = await insertShowingEvent(listingId, row.parsed as ParsedShowingInput, row.externalId);
   await repo.deleteInbox(inboxId);
   await repo.touchListing(listingId);
+  // Filed feedback waits for the agent's review: tell them.
+  if (ev.kind === "feedback") await notifyFeedbackToReview(listingId);
   return { ok: true };
 }
 
@@ -522,12 +534,13 @@ async function byToken(token: string): Promise<ListingRow | undefined> {
 export async function portal(token: string) {
   const l = await byToken(token);
   if (!l) return null;
-  const [events, metrics, oh, suggestions, agent] = await Promise.all([
+  const [events, metrics, oh, suggestions, agent, ads] = await Promise.all([
     repo.listEvents(l.id),
     repo.listMetrics(l.id),
     openHouseSignins(l),
     repo.listSuggestions(l.id),
     users.findActiveUserByEmail(l.agentEmail),
+    publicAds(l.id),
   ]);
   const pub = events.filter(e => e.status === "published");
   const lastActivity = new Date(
@@ -553,7 +566,7 @@ export async function portal(token: string) {
       .filter(e => e.kind !== "cancelled")
       .slice(0, 60)
       .map(e => ({ id: e.id, kind: e.kind, title: e.title, body: e.body, interest: e.interest, priceOpinion: e.priceOpinion, rating: e.rating, when: e.when, createdAt: e.createdAt })),
-    ads: [] as unknown[], // ad campaigns are a later slice of Wave 3
+    ads,
     social: { reelCheckedAt: l.reelAuto?.checkedAt ?? null, youtubeCheckedAt: l.ytAuto?.checkedAt ?? null },
     suggestions: suggestions
       .filter(r => r.status === "published")
@@ -591,7 +604,7 @@ export async function approvePlan(token: string) {
     body: open.map(r => `• ${r.title}`).join("\n"),
   });
   await repo.touchListing(l.id);
-  await enqueue("listingMail.planApproved", { listingId: l.id, titles: open.map(r => r.title) });
+  await mailPlanApproved({ id: l.id, address: formatFreeAddress(l.address), agentEmail: l.agentEmail }, open.map(r => r.title));
   return { ok: true };
 }
 
@@ -608,4 +621,112 @@ export async function openHouseListings() {
 export async function listingForOpenHouse(id: string) {
   const l = await repo.findListingById(id);
   return l ? { id: l.id, address: formatFreeAddress(l.address), agentName: l.agentName } : undefined;
+}
+
+/** A listing the user may manage (their own, or any for admins/ops); 404 otherwise. For other modules. */
+export async function manageableListing(actor: AuthUser, id: string) {
+  const l = await mine(actor, id);
+  return { listing: l, staff: isStaff(actor), address: formatFreeAddress(l.address), price: formatCents(l.priceCents) };
+}
+
+/** Ticks a launch step (e.g. "ads" when an ad order goes live). No-op if already done. */
+export async function tickLaunchStep(listingId: string, key: string) {
+  const l = await repo.findListingById(listingId);
+  if (!l || l.steps.find(s => s.key === key)?.done) return;
+  const now = new Date().toISOString();
+  await repo.updateListing(listingId, { steps: l.steps.map(s => (s.key === key ? { ...s, done: true, doneAt: now } : s)) });
+}
+
+/** Saves the social video links (Instagram = the "Instagram Reel" link in Details). null clears one. */
+export async function setSocialLinks(listingId: string, links: { reel: string | null; youtube: string | null; tiktok: string | null; facebook: string | null }) {
+  const l = await repo.findListingById(listingId);
+  if (!l) throw notFound("Listing not found.");
+  const next: ListingLinks = { ...l.links };
+  for (const [k, v] of Object.entries(links) as [keyof ListingLinks, string | null][]) {
+    if (v) next[k] = v;
+    else delete next[k];
+  }
+  return (await repo.updateListing(listingId, { links: next }))!;
+}
+
+const SOCIAL_FIELDS = { reel: "reelViews", youtube: "youtubeViews", tiktok: "tiktokViews", facebook: "fbViews" } as const;
+
+/** Writes fetched views into this week's numbers (lifetime totals), marked automatic. */
+export async function applySocialViews(listingId: string, views: Partial<Record<keyof typeof SOCIAL_FIELDS, number | null>>) {
+  const wk = weekOf(Date.now());
+  const cur = await repo.findMetric(listingId, wk);
+  const values: Record<string, number | null> = {};
+  for (const k of [...(Object.keys(SOCIAL_FIELDS) as (keyof typeof SOCIAL_FIELDS)[]), "zillowViews", "zillowSaves", "mlsSaved", "mlsMaybe", "mlsNotInterested", "adViews", "adClicks"]) {
+    const field = (k in SOCIAL_FIELDS ? SOCIAL_FIELDS[k as keyof typeof SOCIAL_FIELDS] : k) as keyof ListingMetricRow;
+    values[field] = (cur?.[field] as number | null | undefined) ?? null;
+  }
+  const auto = new Set(cur?.auto ?? []);
+  for (const [k, v] of Object.entries(views) as [keyof typeof SOCIAL_FIELDS, number | null][]) {
+    if (v == null) continue;
+    values[SOCIAL_FIELDS[k]] = v;
+    auto.add(k);
+  }
+  await repo.upsertMetric(listingId, wk, { ...values, auto: [...auto], zillowDays: cur?.zillowDays ?? null, enteredByEmail: cur?.enteredByEmail ?? "auto" });
+  await repo.touchListing(listingId);
+}
+
+// ---------- Emails (scheduled + alerts) ----------
+
+/** Agent alert: feedback waiting for review on this listing (used when feedback arrives without them). */
+export async function notifyFeedbackToReview(listingId: string) {
+  const l = await repo.findListingById(listingId);
+  if (!l) return;
+  const pending = (await repo.listEvents(listingId)).filter(e => e.status === "pending").length;
+  if (pending) await mailFeedbackToReview({ id: l.id, address: formatFreeAddress(l.address), agentEmail: l.agentEmail }, pending);
+}
+
+/** Planned-mail job (queued by older code): send the "seller approved the plan" email. */
+export async function sendPlanApprovedMail(listingId: string, titles: string[]) {
+  const l = await repo.findListingById(listingId);
+  if (l) await mailPlanApproved({ id: l.id, address: formatFreeAddress(l.address), agentEmail: l.agentEmail }, titles);
+}
+
+/** Live listings with this week's status, the last numbers and 7-day activity (weekly emails). */
+async function digest(): Promise<DigestRow[]> {
+  const wk = weekOf(Date.now());
+  const prev = weekOf(Date.now() - 7 * 864e5);
+  const weekAgo = Date.now() - 7 * 864e5;
+  const rows = await repo.listLive();
+  return Promise.all(
+    rows.map(async l => {
+      const [m, ev] = await Promise.all([repo.listMetrics(l.id), repo.listEvents(l.id)]);
+      const last = m.find(x => x.weekOf === prev) ?? [...m].sort((a, b) => b.weekOf.localeCompare(a.weekOf))[0] ?? null;
+      return {
+        id: l.id,
+        address: formatFreeAddress(l.address),
+        agentEmail: l.agentEmail,
+        agentName: l.agentName,
+        sellerName: l.sellerName,
+        sellerEmail: l.sellerEmail,
+        weeklyEmail: l.weeklyEmail,
+        token: l.token,
+        hasThisWeek: m.some(x => x.weekOf === wk && x.enteredByEmail !== "auto"),
+        showings7: ev.filter(e => e.kind === "showing" && e.createdAt.getTime() > weekAgo).length,
+        feedback7: ev.filter(e => e.kind === "feedback" && e.status === "published" && e.createdAt.getTime() > weekAgo).length,
+        stepsDone: l.steps.filter(s => s.done).length,
+        stepsTotal: l.steps.length,
+        last: last ? { zillowViews: last.zillowViews, zillowSaves: last.zillowSaves, mlsSaved: last.mlsSaved, mlsMaybe: last.mlsMaybe, mlsNotInterested: last.mlsNotInterested, adViews: last.adViews } : null,
+      };
+    }),
+  );
+}
+
+/** Monday ~9am Chicago: agents with live listings missing this week's numbers. */
+export async function runMondayReminders() {
+  return mailMondayReminders(await digest());
+}
+
+/** Tuesday ~10am Chicago: ops get the listings still missing numbers. */
+export async function runTuesdayNudge() {
+  return mailTuesdayNudge(await digest(), await users.listEmailsByRoles(["ops"]));
+}
+
+/** Monday ~5pm Chicago: weekly report to sellers who switched it on. */
+export async function runSellerWeekly() {
+  return mailSellerWeekly(await digest());
 }

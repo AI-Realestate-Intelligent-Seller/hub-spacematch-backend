@@ -29,6 +29,27 @@
       "when": 1795601615381,
       "tag": "0003_rentals_feedback_clients_open_houses",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795607180229,
+      "tag": "0004_market_me_announcements",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795611750517,
+      "tag": "0005_listing_ads_orders_social",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795613844807,
+      "tag": "0006_cma_requests",
+      "breakpoints": true
     }
   ]
 }

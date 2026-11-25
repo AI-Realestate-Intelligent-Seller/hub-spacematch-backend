@@ -4,6 +4,10 @@ import * as c from "./user.controller.js";
 
 export const userRoutes = Router();
 
+// Public (no login): the team roster. Mounted at /api/v1/public/roster.
+export const publicRosterRoutes = Router();
+publicRosterRoutes.get("/", c.roster); //     GET /api/v1/public/roster
+
 // Every route here needs a signed-in user.
 userRoutes.use(requireAuth);
 

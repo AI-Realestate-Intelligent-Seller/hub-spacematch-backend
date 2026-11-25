@@ -68,6 +68,16 @@ const EnvSchema = z.object({
   // off = write emails to the log instead of sending. live = send through SMTP.
   MAIL_MODE: z.enum(["off", "live"]).default("off"),
 
+  // Vercel Cron sends "Authorization: Bearer <CRON_SECRET>" to /api/v1/cron/*. Required in production.
+  CRON_SECRET: optionalString,
+
+  // CMA builder (Viktor's queue worker, later our own): sent as the "x-worker-key" header to /api/v1/cma-worker/*.
+  CMA_WORKER_KEY: optionalString,
+
+  // SpaceMatch Reels service (social video views: Instagram, YouTube, TikTok, Facebook). See its HUB_INTEGRATION.md.
+  REELS_API_URL: z.url().default("https://spacematch-backend.vercel.app/v1"),
+  REELS_API_KEY: optionalString,
+
   // Accounts: comma-separated email domains allowed to sign up. Nobody else can create an account.
   AUTH_ALLOWED_DOMAINS: z.string().default("linchpin.net"),
   // Seed only: who becomes admin / ops when they first sign up (comma-separated emails).

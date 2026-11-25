@@ -19,6 +19,21 @@ export const config = {
   appUrl: env.APP_URL.replace(/\/+$/, ""),
   logLevel: env.LOG_LEVEL,
 
+  cmaWorker: {
+    key: env.CMA_WORKER_KEY,
+  },
+
+  cron: {
+    secret: env.CRON_SECRET,
+  },
+
+  reels: {
+    url: env.REELS_API_URL.replace(/\/+$/, ""),
+    key: env.REELS_API_KEY,
+    /** Always on: the key is optional (sent only when set). */
+    isConfigured: true,
+  },
+
   cors: {
     origins: env.CORS_ORIGINS.split(",")
       .map(o => o.trim())

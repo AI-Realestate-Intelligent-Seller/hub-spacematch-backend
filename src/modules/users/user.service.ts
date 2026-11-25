@@ -1,5 +1,6 @@
 // Business rules for users: who may sign up, profile edits, admin changes to role/status.
 import { config } from "../../config/index.js";
+import { signedDownloadUrl } from "../../integrations/storage/storage.client.js";
 import type { AuthUser } from "../../types/auth.js";
 import { badRequest, forbidden, notFound } from "../../utils/http-error.js";
 import * as repo from "./user.repository.js";
@@ -95,9 +96,33 @@ export async function findActiveUserByEmail(email: string): Promise<Pick<UserRow
   return u && u.status === "active" ? { id: u.id, email: u.email, name: u.name, phone: u.phone, role: u.role } : undefined;
 }
 
+/** Emails of active users with any of these roles. */
+export async function listEmailsByRoles(roles: repo.Role[]): Promise<string[]> {
+  return (await repo.listUsers({ status: "active" })).filter(u => roles.includes(u.role)).map(u => u.email);
+}
+
 /** Emails of active admins and ops (who review and approve team items). */
 export async function listStaffEmails(): Promise<string[]> {
   return (await repo.listUsers({ status: "active" })).filter(u => u.role === "admin" || u.role === "ops").map(u => u.email);
+}
+
+/**
+ * The team roster for agent pickers, business cards and public "meet your agent" pages: active
+ * agents and admins (ops and guests aren't agents). Same fields the old public roster had.
+ */
+export async function listRoster() {
+  const rows = (await repo.listUsers({ status: "active" })).filter(u => u.role === "agent" || u.role === "admin");
+  return Promise.all(
+    rows.map(async u => ({
+      name: u.name,
+      email: u.email,
+      phone: u.phone ?? "",
+      title: u.title ?? undefined,
+      lic: u.licenseNo ?? undefined,
+      bio: u.bio ?? undefined,
+      photo: u.photoKey ? await signedDownloadUrl(u.photoKey, 24 * 3600).catch(() => undefined) : undefined,
+    })),
+  );
 }
 
 /** People a listing (or other work) can be assigned to: active agents, ops and admins. */
