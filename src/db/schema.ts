@@ -8,3 +8,7 @@ export * from "../modules/settings/setting.model.js";
 export * from "../modules/vendors/vendor.model.js";
 export * from "../modules/help/help.model.js";
 export * from "../modules/email-templates/email-template.model.js";
+export * from "../modules/commission-buildings/commission-building.model.js";
+export * from "../modules/feedback/feedback.model.js";
+export * from "../modules/past-clients/past-client.model.js";
+export * from "../modules/open-houses/open-house.model.js";

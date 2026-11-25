@@ -594,3 +594,18 @@ export async function approvePlan(token: string) {
   await enqueue("listingMail.planApproved", { listingId: l.id, titles: open.map(r => r.title) });
   return { ok: true };
 }
+
+// ---------- For other modules ----------
+
+/** Listings open houses can be held on (Coming soon / Active), newest first. */
+export async function openHouseListings() {
+  return (await repo.listListings())
+    .filter(l => l.status === "Coming soon" || l.status === "Active")
+    .map(l => ({ id: l.id, address: formatFreeAddress(l.address), agentName: l.agentName }));
+}
+
+/** One listing's address and agent (any agent may host an open house on a team listing). */
+export async function listingForOpenHouse(id: string) {
+  const l = await repo.findListingById(id);
+  return l ? { id: l.id, address: formatFreeAddress(l.address), agentName: l.agentName } : undefined;
+}

@@ -2,10 +2,14 @@
 // Adding a module = one import + one line below.
 // (Better Auth's /api/v1/auth/* handler is mounted in app.ts, before the JSON body parser.)
 import { Router } from "express";
+import { commissionBuildingRoutes } from "./commission-buildings/commission-building.routes.js";
 import { emailTemplateRoutes } from "./email-templates/email-template.routes.js";
+import { feedbackRoutes } from "./feedback/feedback.routes.js";
 import { healthRoutes } from "./health/health.routes.js";
 import { helpRoutes } from "./help/help.routes.js";
 import { listingRoutes, portalRoutes } from "./listings/listing.routes.js";
+import { openHouseRoutes } from "./open-houses/open-house.routes.js";
+import { pastClientRoutes } from "./past-clients/past-client.routes.js";
 import { userRoutes } from "./users/user.routes.js";
 import { publicVendorRoutes, vendorRoutes } from "./vendors/vendor.routes.js";
 
@@ -20,6 +24,10 @@ export function moduleRoutes(): Router {
   router.use("/public", publicVendorRoutes);
   router.use("/help-requests", helpRoutes);
   router.use("/email-templates", emailTemplateRoutes);
+  router.use("/commission-buildings", commissionBuildingRoutes);
+  router.use("/feedback", feedbackRoutes);
+  router.use("/past-clients", pastClientRoutes);
+  router.use("/open-houses", openHouseRoutes);
 
   return router;
 }
