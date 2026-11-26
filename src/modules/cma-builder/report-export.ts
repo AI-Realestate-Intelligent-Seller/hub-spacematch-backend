@@ -3,21 +3,17 @@
 // All Node: runs on Vercel (serverless Chromium) as well as on a worker or a laptop.
 import { readFile } from "node:fs/promises";
 import { createRequire } from "node:module";
-import { PDFDocument } from "pdf-lib";
-import PptxGenJSModule from "pptxgenjs";
+import type PptxGenJSModule from "pptxgenjs";
 import { approvedResearch, PUBLIC_RECORDS } from "../property-intelligence/review.js";
 import type { CmaComparableRow, CmaReportRow } from "./cma-builder.model.js";
 import { finalValue, type ListingInfo } from "./cma-builder.view.js";
 import { withBrowserPage } from "./providers/browser/browser-pool.js";
 import { providerById } from "./providers/index.js";
 import { renderReportHtml } from "./report-html.js";
-import { renderTemplate } from "./report-template.js";
 
 export type ReportFormat = "pdf" | "pptx";
 export const REPORT_EXPORT_LAYOUT = "seller-template-v1";
 // pdf.js (rasterizes PDF pages for the PowerPoint inside Chromium), resolved like an import so Vercel bundles it.
-// pptxgenjs ships an ES default export but CommonJS-style typings; at runtime the default is the class.
-const PptxGenJS = PptxGenJSModule as unknown as typeof PptxGenJSModule.default;
 const requireFrom = createRequire(import.meta.url);
 const PDFJS = requireFrom.resolve("pdfjs-dist/build/pdf.min.mjs");
 const PDFJS_WORKER = requireFrom.resolve("pdfjs-dist/build/pdf.worker.min.mjs");
@@ -97,7 +93,19 @@ export function templateData(report: CmaReportRow, comps: CmaComparableRow[]) {
   return { fields, pages };
 }
 
+/**
+ * Export libraries load only when an export runs, never at API start-up: a problem in one of them must
+ * not take the whole API down. pptxgenjs is loaded as CommonJS on purpose: its ES build is a ".js" file
+ * in a package without "type": "module", which plain Node (and Vercel's runtime) refuses to load.
+ */
+async function exportLibs() {
+  const [{ PDFDocument }, { renderTemplate }] = await Promise.all([import("pdf-lib"), import("./report-template.js")]);
+  const PptxGenJS = requireFrom("pptxgenjs") as typeof PptxGenJSModule.default;
+  return { PDFDocument, renderTemplate, PptxGenJS };
+}
+
 export async function renderReportFiles(report: CmaReportRow, comps: CmaComparableRow[], listing: ListingInfo) {
+  const { PDFDocument, renderTemplate, PptxGenJS } = await exportLibs();
   const html = renderReportHtml({ report, comps, listing, audience: "seller", preview: !report.publishedAt });
   const { fields, pages } = templateData(report, comps);
   const signal = new AbortController().signal;
