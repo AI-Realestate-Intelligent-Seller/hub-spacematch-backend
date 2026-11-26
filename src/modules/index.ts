@@ -5,10 +5,13 @@ import { Router } from "express";
 import { adOrderRoutes } from "./ad-orders/ad-order.routes.js";
 import { announcementRoutes } from "./announcements/announcement.routes.js";
 import { cmaRoutes, cmaWorkerRoutes } from "./cma/cma.routes.js";
+import { cmaListingRoutes, cmaReportRoutes, cmaSellerRoutes } from "./cma-builder/cma-builder.routes.js";
 import { cronRoutes } from "./cron/cron.routes.js";
 import { commissionBuildingRoutes } from "./commission-buildings/commission-building.routes.js";
 import { emailTemplateRoutes } from "./email-templates/email-template.routes.js";
 import { feedbackRoutes } from "./feedback/feedback.routes.js";
+import { formRoutes } from "./forms/form.routes.js";
+import { googleMailRoutes } from "./google-mail/google-mail.routes.js";
 import { healthRoutes } from "./health/health.routes.js";
 import { helpRoutes } from "./help/help.routes.js";
 import { listingAdRoutes } from "./listing-ads/listing-ad.routes.js";
@@ -24,11 +27,15 @@ export function moduleRoutes(): Router {
   const router = Router();
 
   router.use("/health", healthRoutes);
+  router.use("/forms", formRoutes);
+  router.use("/google-mail", googleMailRoutes);
   router.use("/cron", cronRoutes);
   router.use("/users", userRoutes);
+  router.use("/listings", cmaListingRoutes); // /listings/:id/cma/* (before the other /listings routers)
   router.use("/listings", listingAdRoutes);
   router.use("/listings", listingSocialRoutes);
   router.use("/listings", listingRoutes);
+  router.use("/portal", cmaSellerRoutes); // /portal/:token/cma*
   router.use("/portal", portalRoutes);
   router.use("/vendors", vendorRoutes);
   router.use("/public", publicVendorRoutes);
@@ -45,6 +52,7 @@ export function moduleRoutes(): Router {
   router.use("/ad-orders", adOrderRoutes);
   router.use("/cma", cmaRoutes);
   router.use("/cma-worker", cmaWorkerRoutes);
+  router.use("/cma-reports", cmaReportRoutes);
 
   return router;
 }

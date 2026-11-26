@@ -50,6 +50,10 @@ export async function listListings(filter: { agentEmail?: string } = {}): Promis
 }
 
 /** Listings that are on the market (Coming soon / Active), for the weekly emails. */
+export async function listByStatus(statuses: string[]): Promise<ListingRow[]> {
+  return getOrm().select().from(listings).where(inArray(listings.status, statuses));
+}
+
 export async function listLive(): Promise<ListingRow[]> {
   return getOrm().select().from(listings).where(inArray(listings.status, ["Coming soon", "Active"]));
 }

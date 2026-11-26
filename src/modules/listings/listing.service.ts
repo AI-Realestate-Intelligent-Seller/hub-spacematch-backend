@@ -6,12 +6,15 @@ import { addressKey, LAUNCH_STEPS, weekOf } from "../../shared/launch-steps.js";
 import type { AuthUser } from "../../types/auth.js";
 import { badRequest, forbidden, notFound } from "../../utils/http-error.js";
 import { randomString } from "../../utils/id.js";
+import { publishedSummary } from "../cma-builder/cma-builder.public.js";
+import { countSignins, listSignins } from "../forms/form.repository.js";
 import { enqueue, enqueueMany } from "../jobs/job.service.js";
 import * as users from "../users/user.service.js";
 import { publicAds, runningCounts } from "../listing-ads/listing-ad.service.js";
 import { onListingDeleted, onListingStatus } from "../listing-social/listing-social.service.js";
 import { type DigestRow, mailFeedbackToReview, mailMondayReminders, mailPlanApproved, mailSellerWeekly, mailTuesdayNudge } from "./listing.mail.js";
 import type { LaunchStepState, ListingEventRow, ListingLinks, ListingMetricRow, ListingRow, ListingSuggestionRow } from "./listing.model.js";
+import { syncListingSeller } from "./listing.lofty.js";
 import * as repo from "./listing.repository.js";
 import { computeRules, daysOn, type RuleInput } from "./listing.rules.js";
 import type {
@@ -90,12 +93,6 @@ const metricNumbers = (m: ListingMetricRow) => ({
 const showingCount = (ev: Pick<ListingEventRow, "kind">[]) =>
   ev.filter(e => e.kind === "showing").length - ev.filter(e => e.kind === "cancelled").length;
 
-/** Open-house sign-ins for this address. They come from the forms module (Wave 4), which isn't
- *  on the new backend yet, so this is empty until then. */
-async function openHouseSignins(_l: ListingRow): Promise<{ id: string; name: string; at: Date; status: string }[]> {
-  return [];
-}
-
 /** Background work Convex scheduled with ctx.scheduler (handlers arrive with each integration). */
 const followUps = {
   created: (l: ListingRow, byEmail: string) => [
@@ -140,12 +137,12 @@ export async function listListings(actor: AuthUser, scope: "mine" | "all") {
 
 export async function getListing(actor: AuthUser, id: string) {
   const l = await mine(actor, id);
-  const [events, metrics, oh] = await Promise.all([repo.listEvents(id), repo.listMetrics(id), openHouseSignins(l)]);
+  const [events, metrics, oh] = await Promise.all([repo.listEvents(id), repo.listMetrics(id), listSignins(id)]);
   return {
     listing: toListing(l),
     events,
     metrics,
-    openHouse: oh,
+    openHouse: oh.map(row => ({ _id: row.id, name: row.name, at: row.at.getTime(), status: row.status })),
     thisWeek: weekOf(Date.now()),
     me: me(actor),
   };
@@ -257,9 +254,14 @@ export async function updateListing(actor: AuthUser, id: string, a: UpdateListin
 export async function linkLofty(actor: AuthUser, id: string) {
   const l = await mine(actor, id);
   if (!l.sellerEmail && !l.sellerPhone) throw badRequest("Add the seller's email or phone first.");
-  const updated = (await repo.updateListing(id, { loftyError: null, loftyAt: null }))!;
-  await enqueue("lofty.syncListingSeller", { listingId: id, force: !!l.loftyLeadId });
-  return toListing(updated);
+  await repo.updateListing(id, { loftyError: null, loftyAt: null });
+  // Look up straight away (read-only) so the agent sees the result; if Lofty can't be reached, the job runner retries.
+  try {
+    await syncListingSeller(id, !!l.loftyLeadId);
+  } catch {
+    await enqueue("lofty.syncListingSeller", { listingId: id, force: !!l.loftyLeadId });
+  }
+  return toListing((await repo.findListingById(id))!);
 }
 
 export async function rotateLink(actor: AuthUser, id: string) {
@@ -464,7 +466,7 @@ export async function pickList(actor: AuthUser) {
 // ---------- Suggestions ("What we'd do next") ----------
 
 async function ruleInput(l: ListingRow): Promise<RuleInput> {
-  const [ev, m, oh] = await Promise.all([repo.listEvents(l.id), repo.listMetrics(l.id), openHouseSignins(l)]);
+  const [ev, m, oh] = await Promise.all([repo.listEvents(l.id), repo.listMetrics(l.id), countSignins(l.id)]);
   const views = Math.max(m.reduce((a, r) => a + (r.zillowViews ?? 0), 0), l.zillowPage?.views ?? 0);
   const saves = Math.max(m.reduce((a, r) => a + (r.zillowSaves ?? 0), 0), l.zillowPage?.saves ?? 0);
   return {
@@ -474,7 +476,7 @@ async function ruleInput(l: ListingRow): Promise<RuleInput> {
     offers: ev.filter(e => e.kind === "offer").length,
     dom: daysOn(l.liveDate),
     openHouseDone: !!l.steps.find(s => s.key === "openHouse")?.done,
-    openHouseVisitors: oh.length,
+    openHouseVisitors: oh,
     // Only published feedback, and only the words: never buyer-agent names.
     feedback: ev.filter(e => e.kind === "feedback" && e.status === "published").map(e => ({ text: `${e.title} ${e.body ?? ""}`, priceOpinion: e.priceOpinion })),
   };
@@ -537,7 +539,7 @@ export async function portal(token: string) {
   const [events, metrics, oh, suggestions, agent, ads] = await Promise.all([
     repo.listEvents(l.id),
     repo.listMetrics(l.id),
-    openHouseSignins(l),
+    countSignins(l.id),
     repo.listSuggestions(l.id),
     users.findActiveUserByEmail(l.agentEmail),
     publicAds(l.id),
@@ -560,7 +562,7 @@ export async function portal(token: string) {
     counts: {
       showings: showingCount(events),
       feedback: pub.filter(e => e.kind === "feedback").length,
-      openHouse: oh.length,
+      openHouse: oh,
     },
     events: pub
       .filter(e => e.kind !== "cancelled")
@@ -627,6 +629,33 @@ export async function listingForOpenHouse(id: string) {
 export async function manageableListing(actor: AuthUser, id: string) {
   const l = await mine(actor, id);
   return { listing: l, staff: isStaff(actor), address: formatFreeAddress(l.address), price: formatCents(l.priceCents) };
+}
+
+/** A listing's basic facts, by id (for the CMA Builder's background jobs; no access check). */
+export async function listingInfoById(id: string) {
+  const l = await repo.findListingById(id);
+  return l ? { id: l.id, address: formatFreeAddress(l.address), priceCents: l.priceCents, status: l.status, agentName: l.agentName, agentEmail: l.agentEmail, photoUrl: l.photoUrl } : undefined;
+}
+
+/** The listing a seller link opens (undefined when the token is unknown). */
+export async function listingIdForToken(token: string): Promise<string | undefined> {
+  return (await byToken(token))?.id;
+}
+
+/** Marketing activity for the CMA Builder's context panel (kept separate from the valuation). */
+export async function marketingActivity(listingId: string) {
+  const [events, metrics, openHouse] = await Promise.all([repo.listEvents(listingId), repo.listMetrics(listingId), countSignins(listingId)]);
+  const latest = [...metrics].sort((a, b) => b.weekOf.localeCompare(a.weekOf))[0] ?? null;
+  const sum = (k: keyof ListingMetricRow) => metrics.reduce((acc, m) => acc + ((m[k] as number | null) ?? 0), 0);
+  return {
+    showings: showingCount(events),
+    feedback: events.filter(e => e.kind === "feedback" && e.status === "published").length,
+    offers: events.filter(e => e.kind === "offer").length,
+    openHouse,
+    priceOpinions: events.filter(e => e.kind === "feedback" && e.priceOpinion).map(e => e.priceOpinion!).slice(0, 30),
+    latestWeek: latest ? { weekOf: latest.weekOf, ...metricNumbers(latest) } : null,
+    totals: { zillowViews: sum("zillowViews"), zillowSaves: sum("zillowSaves"), adViews: sum("adViews"), adClicks: sum("adClicks") },
+  };
 }
 
 /** Ticks a launch step (e.g. "ads" when an ad order goes live). No-op if already done. */
@@ -726,7 +755,9 @@ export async function runTuesdayNudge() {
   return mailTuesdayNudge(await digest(), await users.listEmailsByRoles(["ops"]));
 }
 
-/** Monday ~5pm Chicago: weekly report to sellers who switched it on. */
+/** Monday ~5pm Chicago: weekly report to sellers who switched it on (with their published CMA, if any). */
 export async function runSellerWeekly() {
-  return mailSellerWeekly(await digest());
+  const rows = await digest();
+  const withCma = await Promise.all(rows.map(async r => (r.weeklyEmail && r.sellerEmail ? { ...r, cma: await publishedSummary(r.id).catch(() => null) } : r)));
+  return mailSellerWeekly(withCma);
 }

@@ -1,5 +1,5 @@
 // All database queries for CMA requests. Only cma.service.ts calls this file.
-import { and, desc, eq, gte, inArray } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, sql } from "drizzle-orm";
 import { getOrm } from "../../db/client.js";
 import { newId } from "../../utils/id.js";
 import { type CmaRequestRow, cmaRequests, type NewCmaRequestRow } from "./cma.model.js";
@@ -47,4 +47,13 @@ export async function updateRequest(id: string, patch: Partial<Omit<NewCmaReques
     .where(and(eq(cmaRequests.id, id)))
     .returning();
   return row!;
+}
+
+/** Latest request for this street (case-insensitive), optionally only ones this agent submitted. */
+export async function latestForStreet(street: string, submittedByEmail?: string): Promise<CmaRequestRow | undefined> {
+  const where = submittedByEmail
+    ? and(sql`lower(${cmaRequests.street}) = ${street.toLowerCase()}`, eq(cmaRequests.submittedByEmail, submittedByEmail))
+    : sql`lower(${cmaRequests.street}) = ${street.toLowerCase()}`;
+  const [row] = await getOrm().select().from(cmaRequests).where(where).orderBy(desc(cmaRequests.createdAt)).limit(1);
+  return row;
 }

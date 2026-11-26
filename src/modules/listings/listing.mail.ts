@@ -47,7 +47,31 @@ export type DigestRow = {
   stepsDone: number;
   stepsTotal: number;
   last: { zillowViews: number | null; zillowSaves: number | null; mlsSaved: number | null; mlsMaybe: number | null; mlsNotInterested: number | null; adViews: number | null } | null;
+  /** Latest agent-published CMA (never drafts). */
+  cma?: {
+    estimatedValue: number | null;
+    range: { low: number; high: number } | null;
+    recommendedListPrice: number | null;
+    pricingRecommendation: string | null;
+    publishedAt: Date;
+    changePct: number | null;
+    newSales: number | null;
+  } | null;
 };
+
+const usd = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
+
+/** "Market & pricing" rows for the weekly seller email (published CMA only). */
+function cmaRows(c: NonNullable<DigestRow["cma"]>): [string, string][] {
+  const rows: [string, string][] = [];
+  if (c.estimatedValue) rows.push(["Market value (agent CMA)", usd(c.estimatedValue)]);
+  if (c.range) rows.push(["Recommended price range", `${usd(c.range.low)} – ${usd(c.range.high)}`]);
+  if (c.recommendedListPrice) rows.push(["Recommended list price", usd(c.recommendedListPrice)]);
+  if (c.changePct != null) rows.push(["Change since the previous analysis", `${c.changePct > 0 ? "+" : ""}${c.changePct.toFixed(1)}%`]);
+  if (c.newSales) rows.push(["New comparable sales", String(c.newSales)]);
+  rows.push(["Analysis published", c.publishedAt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })]);
+  return rows;
+}
 
 /** Monday morning: each agent with live listings missing this week's numbers. */
 export async function mailMondayReminders(rows: DigestRow[]) {
@@ -100,16 +124,22 @@ export async function mailSellerWeekly(rows: DigestRow[]) {
     const first = r.sellerName.split(/\s+/)[0] ?? r.sellerName;
     const line = `Hi ${first}, here's how ${r.address} did this week. Your live page has the full timeline and buyer feedback.`;
     const link = hubLink(`/s/${r.token}`);
+    const market = r.cma ? cmaRows(r.cma) : [];
+    const rec = r.cma?.pricingRecommendation ? r.cma.pricingRecommendation.slice(0, 600) : "";
+    const marketHtml = market.length
+      ? `<h3 style="font-family:Georgia,serif;font-size:17px;margin:18px 0 0">Market &amp; pricing</h3>${table(market)}${rec ? `<p style="font-size:14px;color:#333">${esc(rec)}</p>` : ""}<p style="font-size:13px;margin:6px 0 0"><a href="${esc(`${link}#market`)}" style="color:#9C7434;font-weight:700">See the full market analysis</a></p>`
+      : "";
+    const marketText = market.length ? `\n\nMarket & pricing\n${textTable(market)}${rec ? `\n${rec}` : ""}\nFull market analysis: ${link}#market` : "";
     await sendMail({
       to: r.sellerEmail!,
       subject: `Weekly report · ${r.address}`,
       html: shell(
         "Your weekly listing report",
-        `<p style="font-size:15px;color:#333">${esc(line)}</p>${table(stats)}<p style="font-size:14px;color:#6b665d;margin-top:14px">Questions? Reply to ${esc(r.agentName)} directly.</p>`,
+        `<p style="font-size:15px;color:#333">${esc(line)}</p>${table(stats)}${marketHtml}<p style="font-size:14px;color:#6b665d;margin-top:14px">Questions? Reply to ${esc(r.agentName)} directly.</p>`,
         { href: link, label: "Open my listing page" },
         "SPACEMATCH",
       ),
-      text: `Your weekly listing report\n\n${line}\n\n${textTable(stats)}\n\nOpen your listing page: ${link}\nQuestions? Reply to ${r.agentName} directly.`,
+      text: `Your weekly listing report\n\n${line}\n\n${textTable(stats)}${marketText}\n\nOpen your listing page: ${link}\nQuestions? Reply to ${r.agentName} directly.`,
       tag: "listing:seller-weekly",
     });
   }

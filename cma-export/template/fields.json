@@ -1,0 +1,2452 @@
+{
+ "source": "sources/new.pdf",
+ "pages": {
+  "1": [
+   960.0094604492188,
+   540.0
+  ],
+  "2": [
+   960.0094604492188,
+   540.0
+  ],
+  "3": [
+   960.0089721679688,
+   540.0
+  ],
+  "4": [
+   960.0089721679688,
+   540.0
+  ],
+  "5": [
+   960.0089721679688,
+   540.0
+  ],
+  "6": [
+   960.0094604492188,
+   540.0
+  ],
+  "7": [
+   960.0094604492188,
+   540.0
+  ],
+  "8": [
+   960.0089721679688,
+   540.0
+  ],
+  "9": [
+   960.0094604492188,
+   540.0
+  ],
+  "10": [
+   960.0094604492188,
+   540.0
+  ],
+  "11": [
+   960.0094604492188,
+   540.0
+  ],
+  "12": [
+   960.0094604492188,
+   540.0
+  ],
+  "13": [
+   960.0094604492188,
+   540.0
+  ],
+  "14": [
+   960.0094604492188,
+   540.0
+  ],
+  "15": [
+   960.0094604492188,
+   540.0
+  ],
+  "16": [
+   960.0094604492188,
+   540.0
+  ],
+  "17": [
+   960.0094604492188,
+   540.0
+  ],
+  "18": [
+   960.0094604492188,
+   540.0
+  ],
+  "19": [
+   960.0094604492188,
+   540.0
+  ],
+  "20": [
+   960.0094604492188,
+   540.0
+  ],
+  "21": [
+   960.0094604492188,
+   540.0
+  ],
+  "22": [
+   960.0094604492188,
+   540.0
+  ],
+  "23": [
+   960.0094604492188,
+   540.0
+  ],
+  "24": [
+   960.0094604492188,
+   540.0
+  ],
+  "25": [
+   960.0094604492188,
+   540.0
+  ],
+  "26": [
+   960.0094604492188,
+   540.0
+  ],
+  "27": [
+   960.0094604492188,
+   540.0
+  ],
+  "28": [
+   960.0094604492188,
+   540.0
+  ],
+  "29": [
+   960.0094604492188,
+   540.0
+  ],
+  "30": [
+   960.0094604492188,
+   540.0
+  ],
+  "31": [
+   960.0094604492188,
+   540.0
+  ],
+  "32": [
+   960.0094604492188,
+   540.0
+  ],
+  "33": [
+   960.0094604492188,
+   540.0
+  ],
+  "34": [
+   960.0094604492188,
+   540.0
+  ],
+  "35": [
+   960.0094604492188,
+   540.0
+  ],
+  "36": [
+   960.0094604492188,
+   540.0
+  ],
+  "37": [
+   960.0094604492188,
+   540.0
+  ],
+  "38": [
+   960.0094604492188,
+   540.0
+  ],
+  "39": [
+   960.0094604492188,
+   540.0
+  ],
+  "40": [
+   960.0094604492188,
+   540.0
+  ],
+  "41": [
+   960.0094604492188,
+   540.0
+  ],
+  "42": [
+   960.0094604492188,
+   540.0
+  ],
+  "43": [
+   960.0094604492188,
+   540.0
+  ]
+ },
+ "fonts": {
+  "GowunDodum-Regular": {
+   "file": "fonts/GowunDodum-Regular.ttf",
+   "ascender": 1.159999966621399,
+   "descender": -0.2879999876022339
+  },
+  "Mada-Bold": {
+   "file": "fonts/Mada-Bold.ttf",
+   "ascender": 0.949999988079071,
+   "descender": -0.3499999940395355
+  },
+  "Mada-Regular": {
+   "file": "fonts/Mada-Regular.ttf",
+   "ascender": 0.949999988079071,
+   "descender": -0.3499999940395355
+  }
+ },
+ "fields": [
+  {
+   "page": 8,
+   "field": "agent_eyebrow",
+   "rect": [
+    64.8,
+    69.9,
+    577,
+    87
+   ],
+   "font": "Mada-Regular",
+   "size": 11.0,
+   "color": 6052952,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 1,
+   "field": "cover_caption",
+   "rect": [
+    64.8,
+    443.45,
+    895.2,
+    462
+   ],
+   "font": "Mada-Regular",
+   "size": 12.5,
+   "color": 16777215,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 3,
+   "field": "property_headline",
+   "rect": [
+    64.8,
+    100.1,
+    895.2,
+    135
+   ],
+   "font": "GowunDodum-Regular",
+   "size": 28.0,
+   "color": 3487027,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 3,
+   "field": "property_subtitle",
+   "rect": [
+    64.8,
+    142.6,
+    895.2,
+    166
+   ],
+   "font": "Mada-Regular",
+   "size": 11.5,
+   "color": 6052952,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 3,
+   "field": "property_tax_record",
+   "rect": [
+    74.8,
+    402.7,
+    228,
+    451
+   ],
+   "font": "Mada-Regular",
+   "size": 9.199999809265137,
+   "color": 3487027,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 3,
+   "field": "property_listing_history",
+   "rect": [
+    248,
+    402.7,
+    392,
+    451
+   ],
+   "font": "Mada-Regular",
+   "size": 9.199999809265137,
+   "color": 3487027,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 3,
+   "field": "property_layout",
+   "rect": [
+    430,
+    256.7,
+    649,
+    346
+   ],
+   "font": "Mada-Regular",
+   "size": 9.199999809265137,
+   "color": 3487027,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 3,
+   "field": "property_garage_lot",
+   "rect": [
+    672,
+    256.7,
+    895.2,
+    346
+   ],
+   "font": "Mada-Regular",
+   "size": 9.199999809265137,
+   "color": 3487027,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 3,
+   "field": "property_kitchen_finishes",
+   "rect": [
+    430,
+    378.7,
+    649,
+    470
+   ],
+   "font": "Mada-Regular",
+   "size": 9.199999809265137,
+   "color": 3487027,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 3,
+   "field": "property_updates_systems",
+   "rect": [
+    672,
+    378.7,
+    895.2,
+    470
+   ],
+   "font": "Mada-Regular",
+   "size": 9.199999809265137,
+   "color": 3487027,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 3,
+   "field": "property_source_note",
+   "rect": [
+    64.8,
+    493,
+    895.2,
+    507
+   ],
+   "font": "Mada-Regular",
+   "size": 7.5,
+   "color": 6052952,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 3,
+   "field": "property_beds",
+   "rect": [
+    420,
+    180.1,
+    515,
+    205
+   ],
+   "font": "GowunDodum-Regular",
+   "size": 22.0,
+   "color": 10254908,
+   "align": "center",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 3,
+   "field": "property_full_baths",
+   "rect": [
+    515,
+    180.1,
+    610,
+    205
+   ],
+   "font": "GowunDodum-Regular",
+   "size": 22.0,
+   "color": 10254908,
+   "align": "center",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 3,
+   "field": "property_sqft",
+   "rect": [
+    610,
+    180.1,
+    705,
+    205
+   ],
+   "font": "GowunDodum-Regular",
+   "size": 22.0,
+   "color": 10254908,
+   "align": "center",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 3,
+   "field": "property_acres",
+   "rect": [
+    705,
+    180.1,
+    800,
+    205
+   ],
+   "font": "GowunDodum-Regular",
+   "size": 22.0,
+   "color": 10254908,
+   "align": "center",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 3,
+   "field": "property_year_built",
+   "rect": [
+    800,
+    180.1,
+    895,
+    205
+   ],
+   "font": "GowunDodum-Regular",
+   "size": 22.0,
+   "color": 10254908,
+   "align": "center",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 3,
+   "field": "property_baths_label",
+   "rect": [
+    515,
+    207,
+    610,
+    224
+   ],
+   "font": "Mada-Regular",
+   "size": 7.5,
+   "color": 6052952,
+   "align": "center",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "subject_address",
+   "rect": [
+    75.6,
+    284.6,
+    250.79999999999998,
+    300.5
+   ],
+   "font": "Mada-Regular",
+   "size": 11.5,
+   "color": 3487027,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "subject_location",
+   "rect": [
+    75.6,
+    300.9,
+    250.79999999999998,
+    314.8
+   ],
+   "font": "Mada-Regular",
+   "size": 9.0,
+   "color": 6052952,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "subject_price",
+   "rect": [
+    75.6,
+    315.8,
+    250.79999999999998,
+    334
+   ],
+   "font": "GowunDodum-Regular",
+   "size": 15.0,
+   "color": 10254908,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "property_beds",
+   "rect": [
+    149.6,
+    358.8,
+    250.79999999999998,
+    371.6
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "subject_baths",
+   "rect": [
+    149.6,
+    375.4,
+    250.79999999999998,
+    388.2
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "property_sqft",
+   "rect": [
+    149.6,
+    392.0,
+    250.79999999999998,
+    404.8
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "subject_lot",
+   "rect": [
+    149.6,
+    425.2,
+    250.79999999999998,
+    438.0
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "property_year_built",
+   "rect": [
+    149.6,
+    441.8,
+    250.79999999999998,
+    454.6
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "subject_garage",
+   "rect": [
+    149.6,
+    458.4,
+    250.79999999999998,
+    471.20000000000005
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_1_address",
+   "rect": [
+    286.78,
+    284.6,
+    461.97999999999996,
+    300.5
+   ],
+   "font": "Mada-Regular",
+   "size": 11.5,
+   "color": 3487027,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_1_location",
+   "rect": [
+    286.78,
+    300.9,
+    461.97999999999996,
+    314.8
+   ],
+   "font": "Mada-Regular",
+   "size": 9.0,
+   "color": 6052952,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_1_price",
+   "rect": [
+    286.78,
+    315.8,
+    461.97999999999996,
+    334
+   ],
+   "font": "GowunDodum-Regular",
+   "size": 17.0,
+   "color": 10254908,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_1_closed_date",
+   "rect": [
+    360.78,
+    342.2,
+    461.97999999999996,
+    355.0
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_1_beds",
+   "rect": [
+    360.78,
+    358.8,
+    461.97999999999996,
+    371.6
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_1_baths",
+   "rect": [
+    360.78,
+    375.4,
+    461.97999999999996,
+    388.2
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_1_sqft",
+   "rect": [
+    360.78,
+    392.0,
+    461.97999999999996,
+    404.8
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_1_price_per_sqft",
+   "rect": [
+    360.78,
+    408.6,
+    461.97999999999996,
+    421.4
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_1_lot",
+   "rect": [
+    360.78,
+    425.2,
+    461.97999999999996,
+    438.0
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_1_year_built",
+   "rect": [
+    360.78,
+    441.8,
+    461.97999999999996,
+    454.6
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_1_garage",
+   "rect": [
+    360.78,
+    458.4,
+    461.97999999999996,
+    471.20000000000005
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_2_address",
+   "rect": [
+    497.96000000000004,
+    284.6,
+    673.1600000000001,
+    300.5
+   ],
+   "font": "Mada-Regular",
+   "size": 11.5,
+   "color": 3487027,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_2_location",
+   "rect": [
+    497.96000000000004,
+    300.9,
+    673.1600000000001,
+    314.8
+   ],
+   "font": "Mada-Regular",
+   "size": 9.0,
+   "color": 6052952,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_2_price",
+   "rect": [
+    497.96000000000004,
+    315.8,
+    673.1600000000001,
+    334
+   ],
+   "font": "GowunDodum-Regular",
+   "size": 17.0,
+   "color": 10254908,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_2_closed_date",
+   "rect": [
+    571.96,
+    342.2,
+    673.1600000000001,
+    355.0
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_2_beds",
+   "rect": [
+    571.96,
+    358.8,
+    673.1600000000001,
+    371.6
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_2_baths",
+   "rect": [
+    571.96,
+    375.4,
+    673.1600000000001,
+    388.2
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_2_sqft",
+   "rect": [
+    571.96,
+    392.0,
+    673.1600000000001,
+    404.8
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_2_price_per_sqft",
+   "rect": [
+    571.96,
+    408.6,
+    673.1600000000001,
+    421.4
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_2_lot",
+   "rect": [
+    571.96,
+    425.2,
+    673.1600000000001,
+    438.0
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_2_year_built",
+   "rect": [
+    571.96,
+    441.8,
+    673.1600000000001,
+    454.6
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_2_garage",
+   "rect": [
+    571.96,
+    458.4,
+    673.1600000000001,
+    471.20000000000005
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_3_address",
+   "rect": [
+    709.14,
+    284.6,
+    884.3399999999999,
+    300.5
+   ],
+   "font": "Mada-Regular",
+   "size": 11.5,
+   "color": 3487027,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_3_location",
+   "rect": [
+    709.14,
+    300.9,
+    884.3399999999999,
+    314.8
+   ],
+   "font": "Mada-Regular",
+   "size": 9.0,
+   "color": 6052952,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_3_price",
+   "rect": [
+    709.14,
+    315.8,
+    884.3399999999999,
+    334
+   ],
+   "font": "GowunDodum-Regular",
+   "size": 17.0,
+   "color": 10254908,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_3_closed_date",
+   "rect": [
+    783.14,
+    342.2,
+    884.3399999999999,
+    355.0
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_3_beds",
+   "rect": [
+    783.14,
+    358.8,
+    884.3399999999999,
+    371.6
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_3_baths",
+   "rect": [
+    783.14,
+    375.4,
+    884.3399999999999,
+    388.2
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_3_sqft",
+   "rect": [
+    783.14,
+    392.0,
+    884.3399999999999,
+    404.8
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_3_price_per_sqft",
+   "rect": [
+    783.14,
+    408.6,
+    884.3399999999999,
+    421.4
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_3_lot",
+   "rect": [
+    783.14,
+    425.2,
+    884.3399999999999,
+    438.0
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_3_year_built",
+   "rect": [
+    783.14,
+    441.8,
+    884.3399999999999,
+    454.6
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comp_3_garage",
+   "rect": [
+    783.14,
+    458.4,
+    884.3399999999999,
+    471.20000000000005
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 4,
+   "field": "comparables_source_note",
+   "rect": [
+    64.8,
+    490.3,
+    895.2,
+    505
+   ],
+   "font": "Mada-Regular",
+   "size": 8.0,
+   "color": 6052952,
+   "align": "center",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "subject_address",
+   "rect": [
+    75.6,
+    284.6,
+    250.79999999999998,
+    300.5
+   ],
+   "font": "Mada-Regular",
+   "size": 11.5,
+   "color": 3487027,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "subject_location",
+   "rect": [
+    75.6,
+    300.9,
+    250.79999999999998,
+    314.8
+   ],
+   "font": "Mada-Regular",
+   "size": 9.0,
+   "color": 6052952,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "subject_price",
+   "rect": [
+    75.6,
+    315.8,
+    250.79999999999998,
+    334
+   ],
+   "font": "GowunDodum-Regular",
+   "size": 15.0,
+   "color": 10254908,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "property_beds",
+   "rect": [
+    149.6,
+    358.8,
+    250.79999999999998,
+    371.6
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "subject_baths",
+   "rect": [
+    149.6,
+    375.4,
+    250.79999999999998,
+    388.2
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "property_sqft",
+   "rect": [
+    149.6,
+    392.0,
+    250.79999999999998,
+    404.8
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "subject_lot",
+   "rect": [
+    149.6,
+    425.2,
+    250.79999999999998,
+    438.0
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "property_year_built",
+   "rect": [
+    149.6,
+    441.8,
+    250.79999999999998,
+    454.6
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "subject_garage",
+   "rect": [
+    149.6,
+    458.4,
+    250.79999999999998,
+    471.20000000000005
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_4_address",
+   "rect": [
+    286.78,
+    284.6,
+    461.97999999999996,
+    300.5
+   ],
+   "font": "Mada-Regular",
+   "size": 11.5,
+   "color": 3487027,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_4_location",
+   "rect": [
+    286.78,
+    300.9,
+    461.97999999999996,
+    314.8
+   ],
+   "font": "Mada-Regular",
+   "size": 9.0,
+   "color": 6052952,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_4_price",
+   "rect": [
+    286.78,
+    315.8,
+    461.97999999999996,
+    334
+   ],
+   "font": "GowunDodum-Regular",
+   "size": 17.0,
+   "color": 10254908,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_4_closed_date",
+   "rect": [
+    360.78,
+    342.2,
+    461.97999999999996,
+    355.0
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_4_beds",
+   "rect": [
+    360.78,
+    358.8,
+    461.97999999999996,
+    371.6
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_4_baths",
+   "rect": [
+    360.78,
+    375.4,
+    461.97999999999996,
+    388.2
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_4_sqft",
+   "rect": [
+    360.78,
+    392.0,
+    461.97999999999996,
+    404.8
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_4_price_per_sqft",
+   "rect": [
+    360.78,
+    408.6,
+    461.97999999999996,
+    421.4
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_4_lot",
+   "rect": [
+    360.78,
+    425.2,
+    461.97999999999996,
+    438.0
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_4_year_built",
+   "rect": [
+    360.78,
+    441.8,
+    461.97999999999996,
+    454.6
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_4_garage",
+   "rect": [
+    360.78,
+    458.4,
+    461.97999999999996,
+    471.20000000000005
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_5_address",
+   "rect": [
+    497.96000000000004,
+    284.6,
+    673.1600000000001,
+    300.5
+   ],
+   "font": "Mada-Regular",
+   "size": 11.5,
+   "color": 3487027,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_5_location",
+   "rect": [
+    497.96000000000004,
+    300.9,
+    673.1600000000001,
+    314.8
+   ],
+   "font": "Mada-Regular",
+   "size": 9.0,
+   "color": 6052952,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_5_price",
+   "rect": [
+    497.96000000000004,
+    315.8,
+    673.1600000000001,
+    334
+   ],
+   "font": "GowunDodum-Regular",
+   "size": 17.0,
+   "color": 10254908,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_5_closed_date",
+   "rect": [
+    571.96,
+    342.2,
+    673.1600000000001,
+    355.0
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_5_beds",
+   "rect": [
+    571.96,
+    358.8,
+    673.1600000000001,
+    371.6
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_5_baths",
+   "rect": [
+    571.96,
+    375.4,
+    673.1600000000001,
+    388.2
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_5_sqft",
+   "rect": [
+    571.96,
+    392.0,
+    673.1600000000001,
+    404.8
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_5_price_per_sqft",
+   "rect": [
+    571.96,
+    408.6,
+    673.1600000000001,
+    421.4
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_5_lot",
+   "rect": [
+    571.96,
+    425.2,
+    673.1600000000001,
+    438.0
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_5_year_built",
+   "rect": [
+    571.96,
+    441.8,
+    673.1600000000001,
+    454.6
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_5_garage",
+   "rect": [
+    571.96,
+    458.4,
+    673.1600000000001,
+    471.20000000000005
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_6_address",
+   "rect": [
+    709.14,
+    284.6,
+    884.3399999999999,
+    300.5
+   ],
+   "font": "Mada-Regular",
+   "size": 11.5,
+   "color": 3487027,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_6_location",
+   "rect": [
+    709.14,
+    300.9,
+    884.3399999999999,
+    314.8
+   ],
+   "font": "Mada-Regular",
+   "size": 9.0,
+   "color": 6052952,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_6_price",
+   "rect": [
+    709.14,
+    315.8,
+    884.3399999999999,
+    334
+   ],
+   "font": "GowunDodum-Regular",
+   "size": 17.0,
+   "color": 10254908,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_6_closed_date",
+   "rect": [
+    783.14,
+    342.2,
+    884.3399999999999,
+    355.0
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_6_beds",
+   "rect": [
+    783.14,
+    358.8,
+    884.3399999999999,
+    371.6
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_6_baths",
+   "rect": [
+    783.14,
+    375.4,
+    884.3399999999999,
+    388.2
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_6_sqft",
+   "rect": [
+    783.14,
+    392.0,
+    884.3399999999999,
+    404.8
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_6_price_per_sqft",
+   "rect": [
+    783.14,
+    408.6,
+    884.3399999999999,
+    421.4
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_6_lot",
+   "rect": [
+    783.14,
+    425.2,
+    884.3399999999999,
+    438.0
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_6_year_built",
+   "rect": [
+    783.14,
+    441.8,
+    884.3399999999999,
+    454.6
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comp_6_garage",
+   "rect": [
+    783.14,
+    458.4,
+    884.3399999999999,
+    471.20000000000005
+   ],
+   "font": "Mada-Regular",
+   "size": 8.800000190734863,
+   "color": 3487027,
+   "align": "right",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 5,
+   "field": "comparables_summary_note",
+   "rect": [
+    64.8,
+    490.3,
+    895.2,
+    505
+   ],
+   "font": "Mada-Regular",
+   "size": 8.0,
+   "color": 6052952,
+   "align": "center",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 8,
+   "field": "agent_name",
+   "rect": [
+    64.8,
+    110.9,
+    577,
+    145
+   ],
+   "font": "GowunDodum-Regular",
+   "size": 30.0,
+   "color": 3487027,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 8,
+   "field": "agent_role",
+   "rect": [
+    64.8,
+    157.9,
+    577,
+    178
+   ],
+   "font": "Mada-Regular",
+   "size": 12.0,
+   "color": 6052952,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 8,
+   "field": "agent_bio",
+   "rect": [
+    64.8,
+    198.5,
+    577,
+    345
+   ],
+   "font": "Mada-Regular",
+   "size": 11.600000381469727,
+   "color": 3487027,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 8,
+   "field": "agent_experience",
+   "rect": [
+    78.8,
+    361.2,
+    228.8,
+    382
+   ],
+   "font": "GowunDodum-Regular",
+   "size": 17.0,
+   "color": 10254908,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 8,
+   "field": "agent_licenses",
+   "rect": [
+    253.8,
+    361.2,
+    403.8,
+    382
+   ],
+   "font": "GowunDodum-Regular",
+   "size": 17.0,
+   "color": 10254908,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 8,
+   "field": "agent_client_types",
+   "rect": [
+    428.8,
+    361.2,
+    578.8,
+    382
+   ],
+   "font": "GowunDodum-Regular",
+   "size": 17.0,
+   "color": 10254908,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 8,
+   "field": "agent_phone",
+   "rect": [
+    82,
+    444,
+    197,
+    459
+   ],
+   "font": "Mada-Regular",
+   "size": 11.5,
+   "color": 3487027,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 8,
+   "field": "agent_email",
+   "rect": [
+    208,
+    444,
+    397,
+    459
+   ],
+   "font": "Mada-Regular",
+   "size": 11.5,
+   "color": 3487027,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 8,
+   "field": "agent_license_number",
+   "rect": [
+    408,
+    444,
+    498,
+    459
+   ],
+   "font": "Mada-Regular",
+   "size": 11.5,
+   "color": 3487027,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 8,
+   "field": "agent_mls_id",
+   "rect": [
+    514,
+    444,
+    576,
+    459
+   ],
+   "font": "Mada-Regular",
+   "size": 11.5,
+   "color": 3487027,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 9,
+   "field": "team_verified_award",
+   "rect": [
+    64.8,
+    475.87,
+    540,
+    492
+   ],
+   "font": "Mada-Regular",
+   "size": 9.5,
+   "color": 6052952,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 10,
+   "field": "property_caption",
+   "rect": [
+    83.2,
+    214.3,
+    448.2,
+    243.8
+   ],
+   "font": "Mada-Regular",
+   "size": 11.991000175476074,
+   "color": 6052952,
+   "align": "left",
+   "minimumSize": 6.25,
+   "lineSpacing": 1.1
+  },
+  {
+   "page": 10,
+   "field": "features",
+   "rect": [
+    83.2,
+    289.2,
+    448.2,
+    318.7
+   ],
+   "font": "Mada-Regular",
+   "size": 11.991000175476074,
+   "color": 6052952,
+   "align": "left",
+   "minimumSize": 6.25,
+   "lineSpacing": 1.1
+  },
+  {
+   "page": 10,
+   "field": "buyer_profiles",
+   "rect": [
+    83.2,
+    364.1,
+    448.2,
+    393.6
+   ],
+   "font": "Mada-Regular",
+   "size": 11.991000175476074,
+   "color": 6052952,
+   "align": "left",
+   "minimumSize": 6.25,
+   "lineSpacing": 1.1
+  },
+  {
+   "page": 10,
+   "field": "positioning",
+   "rect": [
+    83.2,
+    438.9,
+    448.2,
+    468.4
+   ],
+   "font": "Mada-Regular",
+   "size": 11.991000175476074,
+   "color": 6052952,
+   "align": "left",
+   "minimumSize": 6.25,
+   "lineSpacing": 1.1
+  },
+  {
+   "page": 10,
+   "field": "improvements",
+   "rect": [
+    506.6,
+    214.3,
+    871.6,
+    243.8
+   ],
+   "font": "Mada-Regular",
+   "size": 11.991000175476074,
+   "color": 6052952,
+   "align": "left",
+   "minimumSize": 6.25,
+   "lineSpacing": 1.1
+  },
+  {
+   "page": 10,
+   "field": "strengths",
+   "rect": [
+    506.6,
+    289.2,
+    871.6,
+    318.7
+   ],
+   "font": "Mada-Regular",
+   "size": 11.991000175476074,
+   "color": 6052952,
+   "align": "left",
+   "minimumSize": 6.25,
+   "lineSpacing": 1.1
+  },
+  {
+   "page": 10,
+   "field": "objections_caption",
+   "rect": [
+    506.6,
+    364.1,
+    871.6,
+    393.6
+   ],
+   "font": "Mada-Regular",
+   "size": 11.991000175476074,
+   "color": 6052952,
+   "align": "left",
+   "minimumSize": 6.25,
+   "lineSpacing": 1.1
+  },
+  {
+   "page": 10,
+   "field": "seller_goals",
+   "rect": [
+    506.6,
+    438.9,
+    871.6,
+    468.4
+   ],
+   "font": "Mada-Regular",
+   "size": 11.991000175476074,
+   "color": 6052952,
+   "align": "left",
+   "minimumSize": 6.25,
+   "lineSpacing": 1.1
+  },
+  {
+   "page": 14,
+   "field": "market_active",
+   "rect": [
+    64.8,
+    205.4,
+    258.8,
+    279
+   ],
+   "font": "GowunDodum-Regular",
+   "size": 29.990999221801758,
+   "color": 10254908,
+   "align": "center",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 14,
+   "field": "market_pending",
+   "rect": [
+    277,
+    205.4,
+    471,
+    279
+   ],
+   "font": "GowunDodum-Regular",
+   "size": 29.990999221801758,
+   "color": 10254908,
+   "align": "center",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 14,
+   "field": "market_dom",
+   "rect": [
+    489,
+    205.4,
+    683,
+    279
+   ],
+   "font": "GowunDodum-Regular",
+   "size": 29.990999221801758,
+   "color": 10254908,
+   "align": "center",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 14,
+   "field": "market_months_supply",
+   "rect": [
+    701,
+    205.4,
+    895,
+    279
+   ],
+   "font": "GowunDodum-Regular",
+   "size": 29.990999221801758,
+   "color": 10254908,
+   "align": "center",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 14,
+   "field": "market_summary",
+   "rect": [
+    64.8,
+    364.5,
+    895.2,
+    390
+   ],
+   "font": "Mada-Regular",
+   "size": 12.50100040435791,
+   "color": 6052952,
+   "align": "center",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 14,
+   "field": "market_source_caption",
+   "rect": [
+    79.2,
+    417.3,
+    880.8,
+    440
+   ],
+   "font": "Mada-Regular",
+   "size": 9.496000289916992,
+   "color": 6052952,
+   "align": "center",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 31,
+   "field": "brokerage_active_edition",
+   "rect": [
+    586.8,
+    218,
+    881,
+    240
+   ],
+   "font": "Mada-Regular",
+   "size": 10.0,
+   "color": 12237241,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 31,
+   "field": "brokerage_reach",
+   "rect": [
+    604.8,
+    249.49,
+    881,
+    290
+   ],
+   "font": "Mada-Regular",
+   "size": 11.5,
+   "color": 16777215,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 31,
+   "field": "brokerage_verified_partners",
+   "rect": [
+    604.8,
+    299.89,
+    881,
+    335
+   ],
+   "font": "Mada-Regular",
+   "size": 11.5,
+   "color": 16777215,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 38,
+   "field": "proof_property_address",
+   "rect": [
+    290.4,
+    285.8,
+    464.4,
+    305
+   ],
+   "font": "Mada-Bold",
+   "size": 11.991000175476074,
+   "color": 3487027,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 38,
+   "field": "proof_property_price",
+   "rect": [
+    290.4,
+    309.6,
+    464.4,
+    335
+   ],
+   "font": "GowunDodum-Regular",
+   "size": 17.007999420166016,
+   "color": 10254908,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 38,
+   "field": "proof_financial_caption",
+   "rect": [
+    290.4,
+    340.5,
+    464.4,
+    384
+   ],
+   "font": "Mada-Regular",
+   "size": 10.48799991607666,
+   "color": 6052952,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 38,
+   "field": "proof_source_note",
+   "rect": [
+    79.2,
+    434.5,
+    880.8,
+    452
+   ],
+   "font": "Mada-Regular",
+   "size": 9.0,
+   "color": 6052952,
+   "align": "center",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 39,
+   "field": "testimonial_1_quote",
+   "rect": [
+    84.3,
+    272.1,
+    311.3,
+    377
+   ],
+   "font": "Mada-Regular",
+   "size": 11.5,
+   "color": 3487027,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 39,
+   "field": "testimonial_1_attribution",
+   "rect": [
+    84.3,
+    390,
+    311.3,
+    411
+   ],
+   "font": "Mada-Regular",
+   "size": 10.5,
+   "color": 6052952,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 39,
+   "field": "testimonial_2_quote",
+   "rect": [
+    366.85,
+    272.1,
+    593.85,
+    377
+   ],
+   "font": "Mada-Regular",
+   "size": 11.5,
+   "color": 3487027,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 39,
+   "field": "testimonial_2_attribution",
+   "rect": [
+    366.85,
+    390,
+    593.85,
+    411
+   ],
+   "font": "Mada-Regular",
+   "size": 10.5,
+   "color": 6052952,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 39,
+   "field": "testimonial_3_quote",
+   "rect": [
+    649.4,
+    272.1,
+    876.4,
+    377
+   ],
+   "font": "Mada-Regular",
+   "size": 11.5,
+   "color": 3487027,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  },
+  {
+   "page": 39,
+   "field": "testimonial_3_attribution",
+   "rect": [
+    649.4,
+    390,
+    876.4,
+    411
+   ],
+   "font": "Mada-Regular",
+   "size": 10.5,
+   "color": 6052952,
+   "align": "left",
+   "minimumSize": null,
+   "lineSpacing": null
+  }
+ ]
+}

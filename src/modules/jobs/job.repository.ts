@@ -4,9 +4,10 @@ import { getDb, getOrm } from "../../db/client.js";
 import { newId } from "../../utils/id.js";
 import { type JobRow, jobs } from "./job.model.js";
 
-export async function insertJobs(items: { kind: string; payload: Record<string, unknown>; runAt: Date }[]): Promise<void> {
+export type JobInsertDb = Pick<ReturnType<typeof getOrm>, "insert">;
+export async function insertJobs(items: { kind: string; payload: Record<string, unknown>; runAt: Date }[], db: JobInsertDb = getOrm()): Promise<void> {
   if (!items.length) return;
-  await getOrm()
+  await db
     .insert(jobs)
     .values(items.map(i => ({ id: newId(), ...i })));
 }
@@ -49,4 +50,21 @@ export async function markFailed(id: string, attempts: number, error: string, ma
 /** Jobs still waiting, by kind (shown by the cron endpoint so pending connector work is visible). */
 export async function queuedCounts(): Promise<{ kind: string; n: number }[]> {
   return getDb()<{ kind: string; n: number }[]>`SELECT kind, count(*)::int AS n FROM jobs WHERE status = 'queued' GROUP BY kind ORDER BY kind`;
+}
+
+/** Whether a job of this kind for this payload key/value is still waiting or running (duplicate guard). */
+export async function hasOpenJob(kind: string, key: string, value: string): Promise<boolean> {
+  const rows = await getDb()<{ n: number }[]>`
+    SELECT count(*)::int AS n FROM jobs
+    WHERE kind = ${kind} AND status IN ('queued', 'running') AND payload->>${key} = ${value}`;
+  return (rows[0]?.n ?? 0) > 0;
+}
+
+
+export async function latestExportJob(kind: string, exportKey: string) {
+  const [row] = await getDb()<Pick<JobRow, "status" | "lastError" | "runAt" | "updatedAt">[]>`
+    SELECT status, last_error AS "lastError", run_at AS "runAt", updated_at AS "updatedAt"
+    FROM jobs WHERE kind = ${kind} AND payload->>'exportKey' = ${exportKey}
+    ORDER BY created_at DESC LIMIT 1`;
+  return row;
 }

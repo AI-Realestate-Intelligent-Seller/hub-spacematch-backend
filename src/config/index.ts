@@ -27,11 +27,51 @@ export const config = {
     secret: env.CRON_SECRET,
   },
 
+  cmaBuilder: {
+    authorizedBrowserSources: splitList(env.CMA_BROWSER_AUTHORIZED_SOURCES),
+    mred: { username: env.CMA_MRED_USERNAME, password: env.CMA_MRED_PASSWORD },
+    browserConcurrency: env.CMA_BROWSER_CONCURRENCY,
+    browserTimeoutMs: env.CMA_BROWSER_TIMEOUT_MS,
+    browserExecutable: env.CMA_BROWSER_EXECUTABLE,
+    exportInline: env.CMA_EXPORT_MODE === "inline",
+    // Fixtures are never offered in production, whatever the variable says.
+    devFixtures: env.CMA_DEV_FIXTURES && env.NODE_ENV !== "production",
+    rentcast: { key: env.RENTCAST_API_KEY, url: env.RENTCAST_API_URL.replace(/\/+$/, "") },
+    refreshThresholdPct: env.CMA_REFRESH_THRESHOLD_PCT,
+    workerPollMs: env.CMA_WORKER_POLL_MS,
+    researchCacheHours: env.CMA_PROPERTY_RESEARCH_CACHE_HOURS,
+  },
+
   reels: {
     url: env.REELS_API_URL.replace(/\/+$/, ""),
     key: env.REELS_API_KEY,
     /** Always on: the key is optional (sent only when set). */
     isConfigured: true,
+  },
+
+  push: {
+    publicKey: env.VAPID_PUBLIC_KEY,
+    privateKey: env.VAPID_PRIVATE_KEY,
+    subject: env.VAPID_SUBJECT,
+    get isConfigured() {
+      return Boolean(env.VAPID_PUBLIC_KEY && env.VAPID_PRIVATE_KEY);
+    },
+  },
+
+  lofty: {
+    key: env.LOFTY_API_KEY,
+    url: env.LOFTY_API_URL.replace(/\/+$/, ""),
+    get isConfigured() {
+      return Boolean(env.LOFTY_API_KEY);
+    },
+  },
+
+  youtube: {
+    key: env.YOUTUBE_API_KEY,
+    uploadsPlaylist: env.YOUTUBE_UPLOADS_PLAYLIST,
+    get isConfigured() {
+      return Boolean(env.YOUTUBE_API_KEY);
+    },
   },
 
   cors: {
@@ -77,6 +117,12 @@ export const config = {
     otpLength: 6,
     otpExpiresInSeconds: 600,
     otpAllowedAttempts: 5,
+  },
+
+  googleMail: {
+    clientId: env.GOOGLE_OAUTH_CLIENT_ID,
+    clientSecret: env.GOOGLE_OAUTH_CLIENT_SECRET,
+    redirectUri: env.GOOGLE_OAUTH_REDIRECT_URI,
   },
 
   mail: {

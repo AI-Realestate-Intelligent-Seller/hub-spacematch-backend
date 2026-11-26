@@ -122,7 +122,6 @@ export async function reviewPing(token: string, event: "open" | "click" | "note"
   } else if (event === "click") {
     if (!r.clickedAt) {
       await repo.updateReview(r.id, { clickedAt: now });
-      // Phone notifications move later; the job waits until then.
       await enqueueMany([{ kind: "push.toEmail", payload: { email: r.agentEmail, title: `${r.clientName} is leaving you a Google review`, body: "They just tapped the Google review button on your link.", url: "/reviews" } }]);
     }
   } else if (note) {

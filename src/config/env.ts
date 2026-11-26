@@ -42,6 +42,10 @@ const EnvSchema = z.object({
     message: "AUTH_SECRET must be at least 32 characters",
   }),
 
+  GOOGLE_OAUTH_CLIENT_ID: optionalString,
+  GOOGLE_OAUTH_CLIENT_SECRET: optionalString,
+  GOOGLE_OAUTH_REDIRECT_URI: optionalString.pipe(z.url().optional()),
+
   // Email (any SMTP provider; Hostinger defaults)
   // Accepts "smtp.gmail.com" and also tolerates "http://smtp.gmail.com/" (scheme and slashes are stripped).
   SMTP_HOST: z
@@ -74,9 +78,44 @@ const EnvSchema = z.object({
   // CMA builder (Viktor's queue worker, later our own): sent as the "x-worker-key" header to /api/v1/cma-worker/*.
   CMA_WORKER_KEY: optionalString,
 
+  // CMA Builder (listing-based CMAs; see src/modules/cma-builder and docs in backend/CMA_BUILDER.md).
+  // Browser sources the broker has confirmed it may automate (comma-separated adapter ids, e.g. "mred").
+  // Empty = no live browser source runs, whatever credentials are set.
+  CMA_BROWSER_AUTHORIZED_SOURCES: z.string().default(""),
+  CMA_MRED_USERNAME: optionalString,
+  CMA_MRED_PASSWORD: optionalString,
+  CMA_BROWSER_CONCURRENCY: z.coerce.number().int().min(1).max(4).default(1),
+  CMA_BROWSER_TIMEOUT_MS: z.coerce.number().int().min(10_000).max(900_000).default(180_000),
+  // Optional: a Chromium binary to use instead of Playwright's download.
+  CMA_BROWSER_EXECUTABLE: optionalString,
+  // "true" = offer the clearly labelled local fixture source (never in production).
+  // PDF/PowerPoint exports: "inline" renders in the API request (Vercel, serverless Chromium);
+  // "worker" leaves them to the separate worker process (npm run worker).
+  CMA_EXPORT_MODE: z.enum(["inline", "worker"]).default("inline"),
+  CMA_DEV_FIXTURES: z.enum(["true", "false", ""]).optional().transform(v => v === "true"),
+  RENTCAST_API_KEY: optionalString,
+  RENTCAST_API_URL: z.url().default("https://api.rentcast.io/v1"),
+  // Weekly refresh: tell the agent when the estimate moves at least this many percent.
+  CMA_REFRESH_THRESHOLD_PCT: z.coerce.number().min(0.5).max(50).default(3),
+  CMA_WORKER_POLL_MS: z.coerce.number().int().min(1000).max(60_000).default(5000),
+  CMA_PROPERTY_RESEARCH_CACHE_HOURS: z.coerce.number().int().min(0).max(720).default(168),
+
   // SpaceMatch Reels service (social video views: Instagram, YouTube, TikTok, Facebook). See its HUB_INTEGRATION.md.
   REELS_API_URL: z.url().default("https://spacematch-backend.vercel.app/v1"),
   REELS_API_KEY: optionalString,
+
+  // Web Push (browser/phone notifications). Generate once: npx web-push generate-vapid-keys
+  VAPID_PUBLIC_KEY: optionalString,
+  VAPID_PRIVATE_KEY: optionalString,
+  VAPID_SUBJECT: z.string().default("mailto:team@spacematchinc.com"),
+
+  // Lofty CRM, read-only (finds a listing's seller among Michael's Lofty leads; never writes).
+  LOFTY_API_KEY: optionalString,
+  LOFTY_API_URL: z.url().default("https://api.lofty.com"),
+
+  // YouTube Data API v3 (finds a listing's Short on the brokerage channel and reads its views).
+  YOUTUBE_API_KEY: optionalString,
+  YOUTUBE_UPLOADS_PLAYLIST: z.string().default("UUg4SCyhsx-9tsHUBrHNuxsA"),
 
   // Accounts: comma-separated email domains allowed to sign up. Nobody else can create an account.
   AUTH_ALLOWED_DOMAINS: z.string().default("linchpin.net"),

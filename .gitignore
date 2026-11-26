@@ -15,3 +15,6 @@ cookie-jar*
 
 # Local agent tooling caches
 .vercel/
+
+# Local Python report renderer
+.venv/

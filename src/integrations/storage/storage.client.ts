@@ -34,8 +34,8 @@ export async function putObject(key: string, body: Buffer, contentType: string):
 }
 
 /** A temporary link to view a private file (default 1 hour). */
-export async function signedDownloadUrl(key: string, expiresInSeconds = 3600): Promise<string> {
-  return getSignedUrl(getStorage(), new GetObjectCommand({ Bucket: config.storage.bucket, Key: key }), { expiresIn: expiresInSeconds });
+export async function signedDownloadUrl(key: string, expiresInSeconds = 3600, filename?: string): Promise<string> {
+  return getSignedUrl(getStorage(), new GetObjectCommand({ Bucket: config.storage.bucket, Key: key, ResponseContentDisposition: filename ? `attachment; filename="${filename}"` : undefined }), { expiresIn: expiresInSeconds });
 }
 
 export async function deleteObject(key: string): Promise<void> {
@@ -54,5 +54,17 @@ export async function objectSize(key: string): Promise<number | null> {
     return r.ContentLength ?? 0;
   } catch {
     return null;
+  }
+}
+
+
+/** Checks a report artifact while keeping missing files distinct from storage downtime. */
+export async function reportObjectExists(key: string): Promise<boolean> {
+  try {
+    await getStorage().send(new HeadObjectCommand({ Bucket: config.storage.bucket, Key: key }), { abortSignal: AbortSignal.timeout(5000) });
+    return true;
+  } catch (error) {
+    if ((error as { $metadata?: { httpStatusCode?: number } }).$metadata?.httpStatusCode === 404) return false;
+    throw serviceUnavailable("Report storage is temporarily unavailable. Try again shortly.");
   }
 }

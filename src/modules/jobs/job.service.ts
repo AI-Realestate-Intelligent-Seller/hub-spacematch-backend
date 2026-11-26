@@ -1,8 +1,28 @@
 // Enqueue background work. Other modules call these; they never touch the jobs table.
 import * as repo from "./job.repository.js";
 
-export async function enqueue(kind: string, payload: Record<string, unknown> = {}, runAt = new Date()): Promise<void> {
+export async function enqueue(kind: string, payload: Record<string, unknown> = {}, runAt = new Date(), db?: repo.JobInsertDb): Promise<void> {
+  await repo.insertJobs([{ kind, payload, runAt }], db);
+}
+
+/** Enqueues unless a job of the same kind with the same payload[key] is already waiting or running. */
+export async function enqueueUnique(kind: string, payload: Record<string, unknown>, key: string, runAt = new Date()): Promise<boolean> {
+  if (await repo.hasOpenJob(kind, key, String(payload[key]))) return false;
   await repo.insertJobs([{ kind, payload, runAt }]);
+  return true;
+}
+
+/** Takes one due job of these kinds (marked running), for long-running workers with their own loop. */
+export async function claimOne(kinds: string[]) {
+  return (await repo.claimDue(kinds, 1))[0];
+}
+
+export async function finishJob(id: string) {
+  await repo.markDone(id);
+}
+
+export async function failJob(id: string, attempts: number, error: string, maxAttempts = 3) {
+  await repo.markFailed(id, attempts, error, maxAttempts);
 }
 
 /** Several jobs in one insert. */
@@ -37,3 +57,5 @@ export async function runDueJobs(handlers: Record<string, JobHandler>, budgetMs 
   }
   return { done, failed, waiting: await repo.queuedCounts() };
 }
+
+export { latestExportJob } from "./job.repository.js";

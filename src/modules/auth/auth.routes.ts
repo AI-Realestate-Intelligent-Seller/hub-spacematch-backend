@@ -15,9 +15,10 @@ import { toNodeHandler } from "better-auth/node";
 import type { RequestHandler } from "express";
 import { getAuth } from "./auth.js";
 
-let handler: ReturnType<typeof toNodeHandler> | undefined;
+let cached: { auth: ReturnType<typeof getAuth>; handler: ReturnType<typeof toNodeHandler> } | undefined;
 
 export const authHandler: RequestHandler = (req, res) => {
-  handler ??= toNodeHandler(getAuth());
-  return handler(req, res);
+  const auth = getAuth();
+  if (cached?.auth !== auth) cached = { auth, handler: toNodeHandler(auth) };
+  return cached.handler(req, res);
 };

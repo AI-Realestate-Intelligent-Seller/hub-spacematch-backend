@@ -8,7 +8,8 @@ import { HttpError, serviceUnavailable } from "../../utils/http-error.js";
 import { logger } from "../../utils/logger.js";
 import { enqueue } from "../jobs/job.service.js";
 import { getSetting, setSetting } from "../settings/setting.service.js";
-import { applySocialViews, manageableListing, setSocialLinks } from "../listings/listing.service.js";
+import { applySocialViews, listingInfoById, manageableListing, setSocialLinks } from "../listings/listing.service.js";
+import { findListingById } from "../listings/listing.repository.js";
 import * as repo from "./listing-social.repository.js";
 import type { FetchInput, Platform } from "./listing-social.validation.js";
 
@@ -186,6 +187,55 @@ export async function retryReelsAction(action: "archive" | "unarchive" | "remove
   } catch (e) {
     if (e instanceof ReelsApiError && (e.status === 404 || (e.status === 409 && action !== "remove"))) return;
     throw e;
+  }
+}
+
+/**
+ * Job "reels.refresh" (queued when a listing is created, its video links change or its address moves):
+ * the same as the agent's "Fetch", in the background. Sends the listing's links to the Reels service
+ * (new property or replaced links) and copies the views. A listing with no links and no property is a
+ * no-op; one whose links were all cleared has its property removed. Invalid links aren't retried.
+ */
+export async function syncListingJob(listingId: string) {
+  const l = await findListingById(listingId);
+  if (!l) return;
+  const urls = ORDER.map(p => l.links[LINK_KEY[p]]).filter((u): u is string => !!u);
+  const social = await repo.findSocial(listingId);
+  if (!urls.length) {
+    if (social?.reelsPropertyId) {
+      await reels.remove(social.reelsPropertyId).catch(e => {
+        if (!(e instanceof ReelsApiError && e.status === 404)) throw e;
+      });
+      await repo.replaceStats(listingId, []);
+      await repo.upsertSocial(listingId, { reelsPropertyId: null, lastRefreshStatus: null });
+    }
+    return;
+  }
+  const address = (await listingInfoById(listingId))!.address;
+  const create = async () => {
+    const created = await reels.createProperty(address, urls);
+    await repo.upsertSocial(listingId, { reelsPropertyId: created.id });
+    return created.id;
+  };
+  try {
+    let propertyId = social?.reelsPropertyId ?? null;
+    if (!propertyId) propertyId = await create();
+    else {
+      try {
+        await reels.replaceLinks(propertyId, urls); // added links are read straight away
+      } catch (e) {
+        if (e instanceof ReelsApiError && e.status === 404) propertyId = await create();
+        else throw e;
+      }
+    }
+    await saveAnalytics(listingId, await reels.analytics(propertyId));
+  } catch (e) {
+    // A bad link won't get better by retrying; the agent sees it on the listing's Social card.
+    if (e instanceof ReelsApiError && (e.status === 409 || e.status === 422)) {
+      logger.warn("reels: background sync refused the links", { listingId, error: e.message });
+      return;
+    }
+    throw e; // network / 5xx / auth: the job runner retries
   }
 }
 

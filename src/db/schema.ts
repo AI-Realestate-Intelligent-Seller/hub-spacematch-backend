@@ -18,3 +18,5 @@ export * from "../modules/listing-ads/listing-ad.model.js";
 export * from "../modules/ad-orders/ad-order.model.js";
 export * from "../modules/listing-social/listing-social.model.js";
 export * from "../modules/cma/cma.model.js";
+export * from "../modules/cma-builder/cma-builder.model.js";
+export * from "../modules/forms/form.model.js";

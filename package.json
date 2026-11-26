@@ -14,13 +14,20 @@
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx src/db/seed.ts",
     "test:auth": "node tests/auth.e2e.mjs",
-    "user:create": "tsx src/cli/create-user.ts"
+    "user:create": "tsx src/cli/create-user.ts",
+    "worker": "tsx watch --include .env src/worker.ts",
+    "worker:start": "node dist/worker.js",
+    "test:cma": "tsx --test tests/cma/*.test.ts",
+    "test:cma:e2e": "node tests/cma.e2e.mjs",
+    "test:connectors": "tsx --test tests/connectors/*.test.ts"
   },
   "license": "UNLICENSED",
   "type": "module",
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1176.0",
     "@aws-sdk/s3-request-presigner": "^3.1176.0",
+    "@pdf-lib/fontkit": "^1.1.1",
+    "@sparticuz/chromium": "^143.0.4",
     "better-auth": "^1.7.27",
     "cors": "^2.8.6",
     "dotenv": "^18.0.10",
@@ -28,7 +35,12 @@
     "express": "^5.3.0",
     "helmet": "^8.3.0",
     "nodemailer": "^10.6.1",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^4.10.38",
+    "playwright-core": "1.57.0",
     "postgres": "^4.1.1",
+    "pptxgenjs": "^4.0.1",
+    "web-push": "^3.6.7",
     "zod": "^4.6.7"
   },
   "devDependencies": {
@@ -36,6 +48,7 @@
     "@types/express": "^5.0.6",
     "@types/node": "^22.20.5",
     "@types/nodemailer": "^8.0.2",
+    "@types/web-push": "^3.6.4",
     "drizzle-kit": "^0.31.11",
     "tsx": "^4.23.15",
     "typescript": "~5.9.3"

@@ -1,5 +1,5 @@
 // All database queries for announcements and push subscriptions. Only announcement.service.ts calls this file.
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, inArray } from "drizzle-orm";
 import { getOrm } from "../../db/client.js";
 import { newId } from "../../utils/id.js";
 import { type AnnouncementRow, announcements, pushSubscriptions } from "./announcement.model.js";
@@ -39,4 +39,14 @@ export async function upsertSubscription(v: { userEmail: string; endpoint: strin
 
 export async function deleteSubscription(endpoint: string): Promise<void> {
   await getOrm().delete(pushSubscriptions).where(eq(pushSubscriptions.endpoint, endpoint));
+}
+
+/** Devices that turned notifications on: everyone's, or one person's (by email, lower-case). */
+export async function listSubscriptions(userEmail?: string) {
+  const q = getOrm().select({ endpoint: pushSubscriptions.endpoint, p256dh: pushSubscriptions.p256dh, auth: pushSubscriptions.auth }).from(pushSubscriptions);
+  return userEmail ? q.where(eq(pushSubscriptions.userEmail, userEmail)) : q;
+}
+
+export async function deleteSubscriptions(endpoints: string[]): Promise<void> {
+  if (endpoints.length) await getOrm().delete(pushSubscriptions).where(inArray(pushSubscriptions.endpoint, endpoints));
 }

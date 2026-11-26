@@ -5,7 +5,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { emailOTP } from "better-auth/plugins";
 import { config } from "../../config/index.js";
-import { getOrm } from "../../db/client.js";
+import { getOrm, resetDb } from "../../db/client.js";
 import { sendMail } from "../../integrations/email/mailer.js";
 import { authCodeEmail } from "../../integrations/email/templates/auth-code.js";
 import { logger } from "../../utils/logger.js";
@@ -16,7 +16,17 @@ import { accounts, rateLimits, sessions, verifications } from "./auth.model.js";
 
 const DAY = 60 * 60 * 24;
 
-function createAuth() {
+const CONNECTION_ERRORS = new Set(["CONNECTION_ENDED", "CONNECTION_CLOSED", "CONNECT_TIMEOUT", "ECONNRESET", "EPIPE", "57P01", "08003", "08006"]);
+
+export function authConnectionError(error: unknown): string | undefined {
+  for (let depth = 0; depth < 6 && error && typeof error === "object"; depth++) {
+    const current = error as { code?: unknown; cause?: unknown };
+    if (typeof current.code === "string" && CONNECTION_ERRORS.has(current.code)) return current.code;
+    error = current.cause;
+  }
+}
+
+function createAuth(database: ReturnType<typeof getOrm>) {
   if (!config.auth.secret) {
     throw new Error("AUTH_SECRET is empty. Generate one with: openssl rand -base64 32");
   }
@@ -29,7 +39,17 @@ function createAuth() {
     // Frontend origins allowed to call auth endpoints with cookies.
     trustedOrigins: [...config.cors.origins],
 
-    database: drizzleAdapter(getOrm(), {
+    logger: {
+      level: "warn",
+      log(level, _message, ...args: unknown[]) {
+        // Auth adapter exceptions can contain bound SQL values, including bearer session tokens.
+        const code = args.map(authConnectionError).find(Boolean);
+        if (code) resetDb("authentication database connection lost", database);
+        logger[level]("Better Auth reported an error", code ? { code } : undefined);
+      },
+    },
+
+    database: drizzleAdapter(database, {
       provider: "pg",
       // Better Auth's models are user/session/account/verification/rateLimit; our tables are plural.
       schema: { user: users, session: sessions, account: accounts, verification: verifications, rateLimit: rateLimits },
@@ -157,10 +177,11 @@ function createAuth() {
 }
 
 export type Auth = ReturnType<typeof createAuth>;
-let instance: Auth | undefined;
+let instance: { database: ReturnType<typeof getOrm>; auth: Auth } | undefined;
 
 /** Created on first use so the server can still boot (and report health) without auth config. */
 export function getAuth(): Auth {
-  instance ??= createAuth();
-  return instance;
+  const database = getOrm();
+  if (instance?.database !== database) instance = { database, auth: createAuth(database) };
+  return instance.auth;
 }

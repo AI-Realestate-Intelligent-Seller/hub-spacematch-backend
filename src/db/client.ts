@@ -66,8 +66,8 @@ export async function pingDb(): Promise<number> {
  * noticed by postgres.js, so queries wait on it forever and every request piles up behind them.
  * Queries still waiting on the old connections fail, so their requests answer with an error.
  */
-export function resetDb(reason: string): void {
-  if (!client) return;
+export function resetDb(reason: string, expectedOrm?: PostgresJsDatabase<typeof schema>): void {
+  if (!client || (expectedOrm && orm !== expectedOrm)) return;
   const old = client;
   client = undefined;
   orm = undefined;

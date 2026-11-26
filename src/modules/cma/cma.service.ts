@@ -240,6 +240,30 @@ export async function decideApproval(actor: AuthUser, id: string, approve: boole
   return { ok: true };
 }
 
+// ---------- For the listing-based CMA Builder ----------
+
+/** Property facts an agent already typed on a CMA request for this street (prefills the builder). */
+export async function factsForStreet(actor: AuthUser, street: string) {
+  const r = await repo.latestForStreet(street, isAdmin(actor) ? undefined : emailOf(actor));
+  if (!r) return null;
+  return {
+    requestId: r.id,
+    propertyType: r.propertyType,
+    beds: r.beds,
+    bathsFull: r.bathsFull,
+    bathsHalf: r.bathsHalf,
+    sqft: r.sqft,
+    yearBuilt: r.yearBuilt,
+    condition: r.condition,
+    garage: r.garage,
+    city: r.city,
+    state: r.state,
+    zip: r.zip,
+    upgrades: r.upgrades.map(u => u.item),
+    createdAt: r.createdAt,
+  };
+}
+
 // ---------- CMA builder (worker) ----------
 
 export async function workerPending() {

@@ -51,7 +51,7 @@ export async function claimOpenHouse(actor: AuthUser, id: string, claim: boolean
   if (claim) {
     if (s.hostEmail && s.hostEmail !== me) throw conflict(`${s.hostName} is already hosting this one.`);
     const updated = (await repo.updateOpenHouse(id, { hostEmail: me, hostName: nameOf(actor) }))!;
-    // Tell whoever added it (push notifications move later; the job waits until then).
+    // Tell whoever added it (phone/browser notification).
     if (s.createdByEmail !== me) {
       await enqueue("push.toEmail", { email: s.createdByEmail, title: `${nameOf(actor)} will host your open house`, body: `${s.address} · ${s.date} ${s.start}–${s.end}`, url: "/open-houses" });
     }

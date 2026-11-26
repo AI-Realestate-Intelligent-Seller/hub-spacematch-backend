@@ -1,0 +1,17 @@
+# CMA worker: headless Chromium jobs that can't run on Vercel (browser-based comparable sources).
+# PDF/PowerPoint exports now run in the API on Vercel; set CMA_EXPORT_MODE=worker to move them here.
+# Runs on any always-on container host. Uses the same env vars as the API (DATABASE_URL, STORAGE_*,
+# SMTP_*, CMA_*). The Playwright base image already contains Chromium and its system libraries.
+#   docker build -f Dockerfile.worker -t spacematch-cma-worker .
+#   docker run --env-file .env --memory=1g --restart=unless-stopped spacematch-cma-worker
+FROM mcr.microsoft.com/playwright:v1.57.0-noble
+WORKDIR /app
+ENV NODE_ENV=production
+COPY package.json package-lock.json ./
+RUN npm ci --include=dev
+COPY tsconfig.json ./
+COPY src ./src
+COPY cma-export/template ./cma-export/template
+RUN npm run build && npm prune --omit=dev
+USER pwuser
+CMD ["node", "dist/worker.js"]
