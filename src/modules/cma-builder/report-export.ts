@@ -13,10 +13,18 @@ import { renderReportHtml } from "./report-html.js";
 
 export type ReportFormat = "pdf" | "pptx";
 export const REPORT_EXPORT_LAYOUT = "seller-template-v1";
-// pdf.js (rasterizes PDF pages for the PowerPoint inside Chromium), resolved like an import so Vercel bundles it.
+// Module-level code here runs at API start-up: keep it to plain values. Files and libraries are looked
+// up inside the export functions, so a missing one can only fail an export, never the whole API.
 const requireFrom = createRequire(import.meta.url);
-const PDFJS = requireFrom.resolve("pdfjs-dist/build/pdf.min.mjs");
-const PDFJS_WORKER = requireFrom.resolve("pdfjs-dist/build/pdf.worker.min.mjs");
+
+/** pdf.js (rasterizes PDF pages for the PowerPoint inside Chromium). Literal `new URL(..., import.meta.url)`
+ *  so Vercel's file tracing bundles both files. */
+function pdfjsFiles() {
+  return [
+    new URL("../../../node_modules/pdfjs-dist/build/pdf.min.mjs", import.meta.url),
+    new URL("../../../node_modules/pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url),
+  ] as const;
+}
 
 const money = (value: number | null) => value == null ? "" : `$${Math.round(value).toLocaleString("en-US")}`;
 const number = (value: number | null | undefined) => value == null ? "" : value.toLocaleString("en-US");
@@ -122,7 +130,7 @@ export async function renderReportFiles(report: CmaReportRow, comps: CmaComparab
     const pdf = Buffer.from(await doc.save());
 
     // reference.preview_pptx: each PDF page as a picture (1.5× scale) on a 13.33 × 7.5 in slide.
-    const [lib, worker] = await Promise.all([readFile(PDFJS, "utf8"), readFile(PDFJS_WORKER, "utf8")]);
+    const [lib, worker] = await Promise.all(pdfjsFiles().map(file => readFile(file, "utf8")));
     await page.setContent("<!doctype html><title>render</title>");
     // Passed as a string: a compiled function can carry bundler helpers (e.g. tsx's __name) that don't
     // exist inside the page.
