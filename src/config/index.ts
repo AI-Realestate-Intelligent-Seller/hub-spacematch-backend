@@ -40,6 +40,7 @@ export const config = {
     refreshThresholdPct: env.CMA_REFRESH_THRESHOLD_PCT,
     workerPollMs: env.CMA_WORKER_POLL_MS,
     researchCacheHours: env.CMA_PROPERTY_RESEARCH_CACHE_HOURS,
+    worker: { url: env.CMA_WORKER_URL?.replace(/\/+$/, ""), secret: env.CMA_WORKER_SECRET, port: env.CMA_WORKER_PORT },
   },
 
   reels: {

@@ -1,6 +1,6 @@
 import { ADJUSTMENT_CATEGORIES } from "./cma-builder.types.js";
 import { providerById } from "./providers/index.js";
-import { approvedResearch, PUBLIC_RECORDS } from "../property-intelligence/review.js";
+import { approvedResearch, PUBLIC_RECORDS, researchCounty } from "../property-intelligence/review.js";
 // The full CMA report as one self-contained HTML page (no external files, fonts or scripts).
 // Used by the legacy HTML endpoints and printed as the detail pages of the template export.
 // All text from the report, the comparables and the agent is escaped.
@@ -60,7 +60,7 @@ export function renderReportHtml(opts: { report: CmaReportRow; comps: CmaCompara
   const asking = r.askingPriceCents == null ? null : Math.round(r.askingPriceCents / 100);
   const subj = r.subject;
   const research = approvedResearch(r.content, r.subject);
-  const sources = [...new Set(opts.comps.filter(c => c.selected).map(c => (c.source === PUBLIC_RECORDS ? "Cook County Public Records" : c.source === "manual" ? "Entered by the agent" : c.source === "csv" ? "Imported by the agent (CSV)" : c.source === "reference-sample" ? "Supplied CMA reference PDF" : c.source)))];
+  const sources = [...new Set(opts.comps.filter(c => c.selected).map(c => (c.source === PUBLIC_RECORDS ? `${researchCounty(r.content.research).name} Public Records` : c.source === "manual" ? "Entered by the agent" : c.source === "csv" ? "Imported by the agent (CSV)" : c.source === "reference-sample" ? "Supplied CMA reference PDF" : c.source)))];
   const stamp = r.publishedAt ? `Published ${date(r.publishedAt)}` : opts.preview ? "PREVIEW — not published" : `Draft ${date(r.updatedAt)}`;
 
   const compRows = (list: CmaComparableRow[], offset = 0) =>
@@ -206,8 +206,8 @@ ${a.status === "insufficient_data" ? `<div class="warn">${esc(a.insufficientReas
 }
 ${research ? chapter("Verified records", "Property research", `<p class="small muted">Records collected ${esc(research.collectedAt.slice(0, 10))}</p>
 ${research.facts.length ? `<table><thead><tr><th>Fact</th><th>Value</th><th>Source</th></tr></thead><tbody>${research.facts.map(f => `<tr><td>${esc(f.label)}</td><td>${esc(String(f.value))} ${esc(f.unit ?? "")}</td><td>${esc(f.provider)} · ${esc(f.dataset)} ${esc(f.effectiveDate ?? "")}</td></tr>`).join("")}</tbody></table>` : ""}
-${research.sales.length ? `<h3>Recorded sales · Cook County Assessor</h3><table><thead><tr><th>Date</th><th>Reported price</th><th>Deed type</th></tr></thead><tbody>${research.sales.map(s => `<tr><td>${esc(s.date)}</td><td>${money(s.price)}</td><td>${esc(s.deed)}</td></tr>`).join("")}</tbody></table>` : ""}
-${research.assessments.length ? `<h3>Assessed values · Cook County Assessor</h3><table><thead><tr><th>Year</th><th>Assessed value</th><th>Roll stage</th></tr></thead><tbody>${research.assessments.map(a => `<tr><td>${a.year}</td><td>${money(a.value)}</td><td>${esc(a.stage)}</td></tr>`).join("")}</tbody></table>` : ""}`) : ""}
+${research.sales.length ? `<h3>Recorded sales · ${esc(research.county.provider)}</h3><table><thead><tr><th>Date</th><th>Reported price</th><th>Deed type</th></tr></thead><tbody>${research.sales.map(s => `<tr><td>${esc(s.date)}</td><td>${money(s.price)}</td><td>${esc(s.deed)}</td></tr>`).join("")}</tbody></table>` : ""}
+${research.assessments.length ? `<h3>${esc(research.county.valueLabel ?? "Assessed values")} · ${esc(research.county.provider)}</h3><table><thead><tr><th>Year</th><th>${esc(research.county.valueLabel ?? "Assessed value")}</th><th>Roll stage</th></tr></thead><tbody>${research.assessments.map(a => `<tr><td>${a.year}</td><td>${money(a.value)}</td><td>${esc(a.stage)}</td></tr>`).join("")}</tbody></table>` : ""}`) : ""}
 ${r.content.propertyObservations ? chapter("Condition and preparation", "Property observations", para(r.content.propertyObservations)) : ""}
 ${sections.comparables && sold.length ? chapter("Closed-sale evidence", "Comparable sales", `<table><thead><tr><th>Property</th><th>Status</th><th class="n">Price</th><th>Sold</th><th class="n">Bd/Ba</th><th class="n">Sq ft</th><th class="n">$/sq ft</th><th class="n">Distance</th><th class="n">DOM</th>${audience === "agent" ? '<th class="n">Match</th>' : ""}</tr></thead><tbody>${compRows(sold)}</tbody></table>${para(r.content.comparableNotes)}`) : ""}
 ${

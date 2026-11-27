@@ -12,7 +12,7 @@ function actor(req: Request): AuthUser {
 }
 
 export async function get(req: Request, res: Response) {
-  res.json(await service.getSocial(actor(req), idParam.parse(req.params).id));
+  res.json(await service.getSocial(actor(req), idParam.parse(req.params).id, req.query.live === "1"));
 }
 export async function fetchNow(req: Request, res: Response) {
   res.json(await service.fetchStats(actor(req), idParam.parse(req.params).id, fetchBody.parse(req.body)));

@@ -9,6 +9,7 @@ import type { CmaReportRow } from "./cma-builder.model.js";
 import { mailCollectionFailed, mailMarketChanged, mailReadyForReview } from "./cma-builder.mail.js";
 import * as repo from "./cma-builder.repository.js";
 import { enqueueUnique } from "../jobs/job.service.js";
+import { wakeWorker } from "./worker-wake.js";
 import { audit, JOB_COLLECT, JOB_COLLECT_BROWSER, recalc, refresh, snapshot } from "./cma-builder.service.js";
 import type { ReportStatus } from "./cma-builder.types.js";
 import { toEngineComp } from "./cma-builder.view.js";
@@ -226,7 +227,7 @@ export async function recoverStale() {
     if (r.collectAttempts >= MAX_COLLECT_ATTEMPTS) {
       await repo.updateReport(r.id, { status: "failed", errorMessage: "Collection didn't finish. Retry, or add comparables by hand." }, ["collecting", "normalizing", "analyzing"]);
     } else if (await repo.updateReport(r.id, { status: "queued", progressNote: "Restarting after an interruption" }, ["collecting", "normalizing", "analyzing"])) {
-      await enqueueUnique(providerById(r.provider)?.needsBrowser ? JOB_COLLECT_BROWSER : JOB_COLLECT, { reportId: r.id }, "reportId");
+      if (await enqueueUnique(providerById(r.provider)?.needsBrowser ? JOB_COLLECT_BROWSER : JOB_COLLECT, { reportId: r.id }, "reportId")) await wakeWorker("recover");
     }
   }
   return { recovered: stuck.length };

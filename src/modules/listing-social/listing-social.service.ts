@@ -2,7 +2,7 @@
 // the SpaceMatch Reels service (see its HUB_INTEGRATION.md). "Fetch" saves the links on the listing,
 // syncs them to the Reels service, reads the views and fills this week's numbers (marked automatic).
 import { config } from "../../config/index.js";
-import { ReelsApiError, type ReelsAnalytics, reels } from "../../integrations/reels/reels.client.js";
+import { ReelsApiError, type ReelsAnalytics, type ReelsRefresh, reels } from "../../integrations/reels/reels.client.js";
 import type { AuthUser } from "../../types/auth.js";
 import { HttpError, serviceUnavailable } from "../../utils/http-error.js";
 import { logger } from "../../utils/logger.js";
@@ -33,8 +33,20 @@ async function view(listingId: string, links: Record<string, string | undefined>
   };
 }
 
-export async function getSocial(actor: AuthUser, listingId: string) {
+/**
+ * The listing's social card. `live`: copy the Reels service's numbers first (the page asks for this every
+ * couple of seconds while "Fetch views" runs, so each platform shows as soon as it's read, not at the end).
+ */
+export async function getSocial(actor: AuthUser, listingId: string, live = false) {
   const { listing } = await manageableListing(actor, listingId);
+  const propertyId = live && config.reels.isConfigured ? (await repo.findSocial(listingId))?.reelsPropertyId : null;
+  if (propertyId) {
+    try {
+      await saveAnalytics(listingId, await reels.analytics(propertyId));
+    } catch (e) {
+      logger.warn("reels: live analytics failed", { listingId, error: String(e) }); // the next poll tries again
+    }
+  }
   return view(listingId, listing.links);
 }
 
@@ -91,45 +103,46 @@ export async function fetchStats(actor: AuthUser, listingId: string, input: Fetc
       return { ...(await view(listingId, updated.links)), notice: "Links cleared." };
     }
 
+    // 1. Send the links without reading them (answers in a second), so the property is known straight away
+    //    and the page's live view (getSocial with live) can show each platform as soon as it's read.
+    const create = async () => {
+      const created = await reels.createProperty(address, urls, { wait: false });
+      await repo.upsertSocial(listingId, { reelsPropertyId: created.id });
+      return created;
+    };
     let propertyId = social?.reelsPropertyId ?? null;
-    let refreshId: string | null = null;
-    let refreshStatus: string | null = null;
+    let early: ReelsRefresh | null = null; // a refresh the Reels service already read (older servers read inline)
     if (!propertyId) {
-      const created = await reels.createProperty(address, urls);
+      const created = await create();
       propertyId = created.id;
-      await repo.upsertSocial(listingId, { reelsPropertyId: propertyId });
-      refreshId = created.refresh?.id ?? null;
-      refreshStatus = created.refresh?.status ?? null;
+      early = created.refresh;
     } else {
       try {
-        const replaced = await reels.replaceLinks(propertyId, urls);
-        const added = replaced.links.length && replaced.refresh ? replaced.refresh : null;
-        // Links that were already there aren't read by a link change; read everything now.
-        try {
-          const r = await reels.refresh(propertyId, actor.email);
-          refreshId = r.refresh.id;
-          refreshStatus = r.refresh.status;
-        } catch (e) {
-          if (e instanceof ReelsApiError && e.status === 429) {
-            notice = `Views were read less than 10 minutes ago. Showing the latest numbers${e.retryAfter ? `; try again in about ${Math.ceil(e.retryAfter / 60)} min` : ""}.`;
-            refreshId = added?.id ?? null;
-            refreshStatus = added?.status ?? null;
-          } else throw e;
-        }
+        await reels.replaceLinks(propertyId, urls, { wait: false });
       } catch (e) {
         // The property was deleted on the Reels side: start again with a new one.
-        if (e instanceof ReelsApiError && e.status === 404) {
-          const created = await reels.createProperty(address, urls);
-          propertyId = created.id;
-          await repo.upsertSocial(listingId, { reelsPropertyId: propertyId });
-          refreshId = created.refresh?.id ?? null;
-          refreshStatus = created.refresh?.status ?? null;
-        } else throw e;
+        if (!(e instanceof ReelsApiError && e.status === 404)) throw e;
+        const created = await create();
+        propertyId = created.id;
+        early = created.refresh;
+      }
+    }
+
+    // 2. Read every link once. The Reels service reads the platforms side by side and turns the queued
+    //    link change into this refresh, so new links aren't read twice.
+    let refresh: ReelsRefresh | null = early && early.status !== "queued" ? early : null;
+    if (!refresh) {
+      try {
+        refresh = (await reels.refresh(propertyId, actor.email)).refresh;
+        if (refresh.trigger === "link_change") notice = "Views were read less than 10 minutes ago. New links were read; the others show their latest numbers.";
+      } catch (e) {
+        if (!(e instanceof ReelsApiError && e.status === 429)) throw e;
+        notice = `Views were read less than 10 minutes ago. Showing the latest numbers${e.retryAfter ? `; try again in about ${Math.ceil(e.retryAfter / 60)} min` : ""}.`;
       }
     }
     // A refresh that ran out of time is finished by polling it (each poll reads more links).
-    for (let i = 0; refreshId && refreshStatus === "running" && i < 3; i++) refreshStatus = (await reels.getRefresh(refreshId)).status;
-    if (refreshStatus === "running") notice = "Some links are still being read. Tap Fetch again in a minute for the rest.";
+    for (let i = 0; refresh?.status === "running" && i < 3; i++) refresh = await reels.getRefresh(refresh.id);
+    if (refresh?.status === "running") notice = "Some links are still being read. Tap Fetch again in a minute for the rest.";
 
     await saveAnalytics(listingId, await reels.analytics(propertyId));
     return { ...(await view(listingId, updated.links)), notice };

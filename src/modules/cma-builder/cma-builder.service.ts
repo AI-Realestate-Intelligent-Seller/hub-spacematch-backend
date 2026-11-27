@@ -23,6 +23,7 @@ import { analyze, autoSelect } from "./engine/valuation.js";
 import { providerById, providerList } from "./providers/index.js";
 import { renderReportHtml } from "./report-html.js";
 import { reportExportKey, type ReportFormat } from "./report-export.js";
+import { wakeWorker } from "./worker-wake.js";
 
 export const JOB_COLLECT = "cmaBuilder.collect"; // API-safe providers (run by the API cron or the worker)
 export const JOB_COLLECT_BROWSER = "cmaBuilder.collectBrowser"; // Chromium: worker only
@@ -247,7 +248,7 @@ async function createVersion(a: {
 }
 
 async function enqueueCollect(reportId: string, needsBrowser: boolean, refreshResearch = false) {
-  await enqueueUnique(needsBrowser ? JOB_COLLECT_BROWSER : JOB_COLLECT, { reportId, refreshResearch }, "reportId");
+  if (await enqueueUnique(needsBrowser ? JOB_COLLECT_BROWSER : JOB_COLLECT, { reportId, refreshResearch }, "reportId")) await wakeWorker("collect");
 }
 
 export async function get(actor: AuthUser, reportId: string) {
@@ -624,8 +625,10 @@ export async function pdf(actor: AuthUser, reportId: string, format: ReportForma
   return exportLink(report, format, download);
 }
 
-function queueReportExport(report: CmaReportRow) {
-  return enqueueUnique(JOB_RENDER_PDF, { reportId: report.id, exportKey: reportExportKey(report) }, "exportKey");
+async function queueReportExport(report: CmaReportRow) {
+  const queued = await enqueueUnique(JOB_RENDER_PDF, { reportId: report.id, exportKey: reportExportKey(report) }, "exportKey");
+  if (queued) await wakeWorker("renderPdf");
+  return queued;
 }
 
 async function exportLink(report: CmaReportRow, format: ReportFormat, download: boolean) {

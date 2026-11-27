@@ -1,0 +1,63 @@
+# Render Blueprint: the CMA worker as its own service, next to the API on Vercel.
+# Render dashboard → New → Blueprint → pick this repo. Render reads this file and asks for every
+# `sync: false` value (copy them from the Vercel project's env vars). See CMA_BUILDER.md → Deployment.
+#
+# How it connects to Vercel: both use the same Supabase database. The API queues CMA jobs in the `jobs`
+# table and calls this service's POST /wake (shared CMA_WORKER_SECRET); the worker claims and runs them.
+# If a wake is missed, the worker still polls every CMA_WORKER_POLL_MS.
+services:
+  - type: web # a web service (not a background worker) so the API can reach /wake and Render can check /health
+    name: spacematch-cma-worker
+    runtime: docker
+    dockerfilePath: ./Dockerfile.worker
+    dockerContext: .
+    region: virginia # same AWS region as Supabase (us-east-1) and Vercel's default
+    plan: starter # 512 MB: fine while no browser source is on. Move to standard (2 GB) before enabling one.
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CMA_WORKER_PORT
+        value: "10000" # Render routes traffic to port 10000 by default
+      - key: CMA_WORKER_SECRET
+        generateValue: true # copy the generated value into Vercel's CMA_WORKER_SECRET
+      - key: CMA_BROWSER_CONCURRENCY
+        value: "1"
+      - key: CMA_EXPORT_MODE
+        value: inline
+      # Same values as on Vercel:
+      - key: DATABASE_URL
+        sync: false
+      - key: STORAGE_S3_ENDPOINT
+        sync: false
+      - key: STORAGE_S3_REGION
+        sync: false
+      - key: STORAGE_S3_ACCESS_KEY_ID
+        sync: false
+      - key: STORAGE_S3_SECRET_ACCESS_KEY
+        sync: false
+      - key: STORAGE_BUCKET
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: API_URL
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_SECURE
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: MAIL_MODE
+        sync: false
+      - key: RENTCAST_API_KEY
+        sync: false
+      - key: CMA_BROWSER_AUTHORIZED_SOURCES
+        sync: false

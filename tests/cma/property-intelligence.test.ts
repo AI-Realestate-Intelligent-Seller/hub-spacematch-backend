@@ -50,8 +50,10 @@ test("invalid, unsupported, rate-limited, partial and cancelled research return 
   });
   const run = (signal = AbortSignal.timeout(1000)) => research("101 Test Trl, Test, IL 60090", signal, async () => {});
   assert.equal((await run()).status, "clarification");
-  match = county("17043");
-  assert.equal((await run()).status, "partial");
+  match = county("17019"); // Champaign: no adapter
+  const unsupported = await run();
+  assert.equal(unsupported.status, "partial");
+  assert.match(unsupported.issues[0]?.message ?? "", /Cook, DuPage and Lake/);
   match = county("17031");
   const partial = await run();
   assert.equal(partial.status, "partial");
@@ -82,4 +84,92 @@ test("a provider timeout leaves the CMA with an unavailable research result", as
   const result = await research("101 Test Trail", AbortSignal.timeout(1000), async () => {});
   assert.equal(result.status, "unavailable");
   assert.equal(result.issues[0]?.message, "Request timed out");
+});
+
+// ---------------------------------------------------------- suburban counties ----
+
+const geocoded = (geoid: string, matched: string) => ({ result: { addressMatches: [{ matchedAddress: matched, coordinates: { x: -88.1, y: 41.8 }, geographies: { Counties: [{ GEOID: geoid, NAME: "County" }] } }] } });
+const features = (...rows: { attributes: Record<string, unknown>; centroid?: { x: number; y: number } }[]) => Response.json({ features: rows });
+
+test("DuPage: the parcel is matched by address, with fair cash value history and no owner fields requested", async t => {
+  const queries: URL[] = [];
+  t.mock.method(globalThis, "fetch", async (url: URL) => {
+    if (url.hostname.startsWith("geocoding")) return Response.json(geocoded("17043", "1035 N EAGLE ST, NAPERVILLE, IL, 60563"));
+    queries.push(url);
+    const year = Number(/AssessmentParcels(\d{4})/.exec(url.pathname)?.[1]);
+    if (url.searchParams.get("where")?.startsWith("PIN=")) return features({ attributes: { PIN: "0712403045", FCVTOTAL: 300000 + (year - 2020) * 1000 } });
+    return features(
+      { attributes: { PIN: "0712403045", PROPADDRL1: "1035 N EAGLE ST", PROPADDRL2: "NAPERVILLE IL 60563", PROPCLASS: "R", FCVTOTAL: 369646, FCVLAND: 133415, FCVIMP: 236231, TAXAMOUNT: 20620.04, ACREAGE: 0.6, MUNICIPALITY: "Naperville", UNITSCHOOLDISTRICT: "District 203", MULTIPIN_COUNT: 1 }, centroid: { x: -88.1513, y: 41.788 } },
+      { attributes: { PIN: "0712403046", PROPADDRL1: "1035 N EAGLE STATION RD" } }, // same LIKE prefix, different street
+    );
+  });
+  const r = await research("1035 N Eagle St, Naperville, IL 60563", AbortSignal.timeout(2000), async () => {});
+  assert.equal(r.county?.name, "DuPage County");
+  assert.equal(r.facts.pin?.value, "07-12-403-045");
+  assert.equal(r.facts.fairCashValue?.value, "$369,646");
+  assert.equal(r.facts.taxBill?.value, "$20,620");
+  assert.equal(r.facts.lot?.value, 26136);
+  assert.equal(r.facts.school_unified?.value, "District 203");
+  assert.equal(r.facts.latitude?.value, 41.788);
+  assert.deepEqual(r.assessments.map(a => a.year), [2025, 2024, 2023, 2022, 2021, 2020]);
+  assert.equal(r.assessments[0]?.value, 369646);
+  assert.equal(r.assessments[1]?.value, 304000);
+  assert.equal(r.status, "partial"); // no county sales in DuPage open data
+  assert.match(r.issues.map(i => i.message).join(" "), /doesn't publish recorded sales/);
+  const first = queries[0]!;
+  assert.match(first.searchParams.get("where") ?? "", /^PROPZIP='60563' AND PROPADDRL1 LIKE '1035 N EAGLE ST%'$/);
+  for (const q of queries) assert.doesNotMatch(q.searchParams.get("outFields") ?? "", /BILLNAME|BILLADDR|taxpayer/i);
+});
+
+test("DuPage: a building address shared by several PINs asks for the unit", async t => {
+  t.mock.method(globalThis, "fetch", async (url: URL) => {
+    if (url.hostname.startsWith("geocoding")) return Response.json(geocoded("17043", "500 S MAIN ST, WHEATON, IL, 60187"));
+    return features({ attributes: { PIN: "0516100001", PROPADDRL1: "500 S MAIN ST UNIT 1" } }, { attributes: { PIN: "0516100002", PROPADDRL1: "500 S MAIN ST UNIT 2" } });
+  });
+  const r = await research("500 S Main St, Wheaton, IL 60187", AbortSignal.timeout(2000), async () => {});
+  assert.equal(r.status, "clarification");
+  assert.equal(r.facts.pin, undefined);
+});
+
+test("Lake: PIN, address and location from the open parcel layer; taxpayer fields are never requested", async t => {
+  const queries: URL[] = [];
+  t.mock.method(globalThis, "fetch", async (url: URL) => {
+    if (url.hostname.startsWith("geocoding")) return Response.json(geocoded("17097", "18 N COUNTY ST, WAUKEGAN, IL, 60085"));
+    queries.push(url);
+    return features({ attributes: { PIN: "0821410004", situs_addr_line_1_First: "18 N COUNTY ST", situs_addr_city_First: "WAUKEGAN", situs_addr_state_legdat_First: "IL", situs_addr_zip_legdat_First: "60085", INSIDE_X: -87.8332, INSIDE_Y: 42.3603 } });
+  });
+  const r = await research("18 N County St, Waukegan, IL 60085", AbortSignal.timeout(2000), async () => {});
+  assert.equal(r.county?.name, "Lake County");
+  assert.equal(r.facts.pin?.value, "08-21-410-004");
+  assert.equal(r.facts.parcelAddress?.value, "18 N COUNTY ST, WAUKEGAN, IL 60085");
+  assert.equal(r.facts.longitude?.value, -87.8332);
+  assert.equal(r.status, "partial");
+  assert.doesNotMatch(queries[0]!.searchParams.get("outFields") ?? "", /taxpayer/i);
+});
+
+test("an ArcGIS error body is reported as a provider issue, not a crash", async t => {
+  t.mock.method(globalThis, "fetch", async (url: URL) => {
+    if (url.hostname.startsWith("geocoding")) return Response.json(geocoded("17097", "18 N COUNTY ST, WAUKEGAN, IL, 60085"));
+    return Response.json({ error: { code: 400, message: "Invalid query" } });
+  });
+  const r = await research("18 N County St, Waukegan, IL 60085", AbortSignal.timeout(2000), async () => {});
+  assert.equal(r.status, "partial");
+  assert.match(r.issues[0]?.message ?? "", /ArcGIS error 400 Invalid query/);
+});
+
+test("Will, Kane and McHenry explain why they aren't researched automatically", async t => {
+  let geoid = "17197";
+  t.mock.method(globalThis, "fetch", async () => Response.json(geocoded(geoid, "150 W JEFFERSON ST, JOLIET, IL, 60432")));
+  for (const [id, words] of [["17197", /Will County/], ["17089", /Kane County.*Sidwell/], ["17111", /McHenry County/]] as const) {
+    geoid = id;
+    const r = await research("150 W Jefferson St, Joliet, IL 60432", AbortSignal.timeout(2000), async () => {});
+    assert.equal(r.status, "partial");
+    assert.match(r.issues[0]?.message ?? "", words);
+  }
+});
+
+test("approved research keeps its county for labels; older research falls back to Cook", () => {
+  const base = { addressKey: "X", collectedAt: "2026-11-27T00:00:00Z", status: "partial" as const, issues: [], sales: [], candidates: [], assessments: [{ year: 2025, value: 1, stage: "Fair cash value" }], facts: {} };
+  assert.equal(approvedResearch({ research: { ...base, county: { name: "DuPage County", provider: "DuPage County Supervisor of Assessments" } }, researchApprovals: ["assessments"] })?.county.name, "DuPage County");
+  assert.equal(approvedResearch({ research: base, researchApprovals: ["assessments"] })?.county.name, "Cook County");
 });

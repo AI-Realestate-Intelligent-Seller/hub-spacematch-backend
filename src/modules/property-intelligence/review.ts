@@ -1,4 +1,5 @@
 import type { ReportContent, SubjectProperty } from "../cma-builder/cma-builder.types.js";
+import type { Research, ResearchCounty } from "./research-shared.js";
 
 export const PUBLIC_RECORDS = "public-records";
 export const factSubjectField = { beds: "beds", baths: "baths", yearBuilt: "yearBuilt" } as const;
@@ -13,7 +14,12 @@ export function approvedResearch(content: ReportContent, subject?: SubjectProper
   });
   const sales = approved.has("sales") ? r.sales : [];
   const assessments = approved.has("assessments") ? r.assessments : [];
-  return facts.length || sales.length || assessments.length ? { collectedAt: r.collectedAt, facts, sales, assessments } : null;
+  return facts.length || sales.length || assessments.length ? { collectedAt: r.collectedAt, facts, sales, assessments, county: researchCounty(r) } : null;
+}
+
+/** The county the records came from. Research saved before county adapters existed is Cook's. */
+export function researchCounty(r: Pick<Research, "county"> | undefined): ResearchCounty {
+  return r?.county ?? { name: "Cook County", provider: "Cook County Assessor", salesUrl: "https://datacatalog.cookcountyil.gov/resource/wvhk-k5uv.json", assessmentsUrl: "https://datacatalog.cookcountyil.gov/resource/uzyt-m557.json" };
 }
 
 /** County records can fill gaps in analysis. Editable CMA facts remain under the agent's control. */

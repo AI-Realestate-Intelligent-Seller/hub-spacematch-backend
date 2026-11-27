@@ -147,6 +147,36 @@ node tests/cma.e2e.mjs http://localhost:4100
   10 minutes); browser collection waits in the queue.
 - Environment variables: see the CMA Builder block in `.env.example`.
 
+### Worker on Render (separate service, connected to the Vercel API)
+
+```
+Vercel API ── queues job ──► Supabase `jobs` table ◄── claims (poll / wake) ── Render: CMA worker
+     └──────── POST /wake (x-worker-secret) ─────────────────────────────────────────┘
+```
+
+The two services share the database; the `jobs` table is the queue, and claims are atomic, so the
+API cron and the worker never run the same job. `/wake` only makes it faster: without it (or if it
+fails) the worker still polls every `CMA_WORKER_POLL_MS`.
+
+1. Render → **New → Blueprint** → this repo. `render.yaml` creates `spacematch-cma-worker`, a Docker
+   web service built from `Dockerfile.worker` in Virginia (same region as Supabase), with
+   `healthCheckPath: /health`.
+2. Fill in the `sync: false` values from the Vercel project (database, storage, SMTP, RentCast…).
+   Render generates `CMA_WORKER_SECRET`.
+3. Vercel → project env vars: `CMA_WORKER_URL=https://<service>.onrender.com` and the same
+   `CMA_WORKER_SECRET`. Redeploy the API.
+4. Check: `curl https://<service>.onrender.com/health` → `{"ok":true,…}`; request a CMA and the worker
+   log shows `worker: job done` within seconds.
+
+| Worker endpoint | |
+|---|---|
+| `GET /health` | `200 {"ok":true,"running","slots","lastJobAt"}` when the database answers, else `503` (Render restarts it) |
+| `POST /wake` | Header `x-worker-secret`. `202` = idle slots check the queue now. `401` wrong secret, `503` no secret set |
+
+Plan: `starter` (512 MB) is enough while no browser source is enabled; switch to `standard` (2 GB)
+before turning one on (Chromium). Leave `CMA_WORKER_URL` empty on Vercel to disconnect the worker;
+the API cron keeps running API-safe collection either way.
+
 ## Automatic property research
 
 The listing detail **Request CMA** button posts to `/api/v1/listings/:id/cma/request`.
@@ -155,8 +185,8 @@ collection together, including requests using Manual entry / CSV import. The leg
 request form still uses its separate address-based queue.
 
 The worker checks the listing address and the versioned research cache, then geocodes with
-Census and selects a county adapter by FIPS. Cook County requires a unique PIN and a matching
-current situs address before attaching records. Ambiguous matches leave the CMA available
+Census and selects a county adapter by FIPS (Cook, DuPage, Lake; see County coverage below).
+Every adapter requires a unique PIN, and Cook also a matching current situs address, before attaching records. Ambiguous matches leave the CMA available
 for review and show an address clarification message. Public requests use short timeouts
 and one retry for eligible upstream service errors. HTTP 429 responses surface as partial
 or unavailable results without immediate retries. Active requests can be cancelled through
@@ -202,8 +232,26 @@ candidates after deduplication.
 
 Direct FEMA layer 28 queries reset the connection. The tested OpenStreetMap Overpass
 endpoint timed out and then returned HTTP 406. Live FEMA zone codes, Overpass amenities
-and transportation, verified property tax bills, and DuPage and Lake County adapters
-remain outside the current integration.
+and transportation, and verified property tax bills remain outside the current integration.
+
+### County coverage (`property-intelligence/research.ts` + `counties.ts`)
+
+| County (FIPS) | Source | What is collected |
+|---|---|---|
+| Cook (17031) | Cook County Assessor open data (Socrata) | PIN, characteristics (beds, baths, year built, area), class, schools, flood flag, recorded sales, assessments, sale comparables |
+| DuPage (17043) | DuPage Supervisor of Assessments yearly ArcGIS layers (2020–2025) | PIN, class, fair cash value (land/building/total) and its 6-year history, tax bill, lot (GIS acreage), municipality, school districts, centroid. **No sales**: DuPage doesn't publish recorded sales as open data, so there are no county comparables |
+| Lake (17097) | Lake County open parcel polygons (ArcGIS) | PIN, site address, location. Assessed values and sales are only on the assessor's own site (no open API) |
+| Will (17197), Kane (17089), McHenry (17111) | Not automated | Will restricts reuse to purposes approved in writing; Kane sells parcel data (Sidwell); McHenry has no public service. The Property research tab says so |
+
+Each adapter matches the Census street address to exactly one PIN (a shared building address
+needs the unit), and never requests owner or taxpayer fields. The stored research carries a
+`county` block (name, provider, source links, value label) that drives labels in the Property
+research tab, the seller portal and the PDF; research saved before this is treated as Cook's.
+When DuPage publishes a new year, add one line to `DUPAGE_YEARS` in `counties.ts`.
+
+Live check on November 27, 2026: DuPage 1035 N Eagle St, Naperville → PIN 07-12-403-045, fair cash
+value $369,646 (2025) with values back to 2020; Lake 18 N County St, Waukegan → PIN 08-21-410-004 with
+location; Will (Joliet) → the explanatory note; Cook Wheeling → unchanged (complete, 2 sales).
 
 ### Manual smoke test
 

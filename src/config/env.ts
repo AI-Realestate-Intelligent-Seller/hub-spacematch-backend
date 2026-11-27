@@ -99,6 +99,12 @@ const EnvSchema = z.object({
   CMA_REFRESH_THRESHOLD_PCT: z.coerce.number().min(0.5).max(50).default(3),
   CMA_WORKER_POLL_MS: z.coerce.number().int().min(1000).max(60_000).default(5000),
   CMA_PROPERTY_RESEARCH_CACHE_HOURS: z.coerce.number().int().min(0).max(720).default(168),
+  // The CMA worker as its own service (e.g. on Render). API side: its public URL, so new jobs wake it at once.
+  // Both sides: the shared secret for its /wake endpoint. Worker side: the port its /health + /wake server
+  // listens on (unset = no HTTP server, e.g. `npm run worker` next to a local API on PORT).
+  CMA_WORKER_URL: optionalUrl,
+  CMA_WORKER_SECRET: optionalString,
+  CMA_WORKER_PORT: z.preprocess(v => (typeof v === "string" && v.trim() === "" ? undefined : v), z.coerce.number().int().min(1).max(65535).optional()),
 
   // SpaceMatch Reels service (social video views: Instagram, YouTube, TikTok, Facebook). See its HUB_INTEGRATION.md.
   REELS_API_URL: z.url().default("https://spacematch-backend.vercel.app/v1"),

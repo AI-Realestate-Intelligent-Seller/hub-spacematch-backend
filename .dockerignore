@@ -1,0 +1,15 @@
+# Keep the Docker build context small and free of secrets (Dockerfile.worker copies only what it needs).
+node_modules
+dist
+coverage
+.env
+.env.*
+!.env.example
+.venv
+.vercel
+.git
+tests
+*.log
+cookies.txt
+cma-export/__pycache__
+cma-export/sources

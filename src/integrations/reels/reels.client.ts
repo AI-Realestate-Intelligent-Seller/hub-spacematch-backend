@@ -21,7 +21,7 @@ export class ReelsApiError extends Error {
 }
 
 export type ReelsLink = { id: string; platform: string; url: string; canonical_url: string; embed_url: string | null; status: string };
-export type ReelsRefresh = { id: string; property_id: string; status: string; links?: { link_id: string; status: string; error: { code: string; message: string } | null }[] };
+export type ReelsRefresh = { id: string; property_id: string; status: string; trigger?: string; links?: { link_id: string; status: string; error: { code: string; message: string } | null }[] };
 export type ReelsReel = {
   link_id: string;
   platform: "instagram" | "facebook" | "tiktok" | "youtube";
@@ -83,11 +83,16 @@ async function call<T>(method: string, path: string, body?: unknown, idemKey?: s
   }
 }
 
+/** `wait: false` answers at once and leaves the new links' refresh queued (read it with refresh / getRefresh).
+ *  LONG timeout kept: a Reels server without `wait` support ignores it and reads inline. */
+type WaitOpt = { wait?: boolean };
+const waitQuery = (o?: WaitOpt) => (o?.wait === false ? "?wait=false" : "");
+
 export const reels = {
-  createProperty: (address: string, links: string[]) =>
-    call<{ id: string; links: ReelsLink[]; refresh: ReelsRefresh | null }>("POST", "/properties", { address, links }, randomUUID(), LONG),
-  replaceLinks: (id: string, links: string[]) =>
-    call<{ property_id: string; links: ReelsLink[]; refresh: ReelsRefresh | null }>("PUT", `/properties/${id}/links`, { links }, undefined, LONG),
+  createProperty: (address: string, links: string[], o?: WaitOpt) =>
+    call<{ id: string; links: ReelsLink[]; refresh: ReelsRefresh | null }>("POST", `/properties${waitQuery(o)}`, { address, links }, randomUUID(), LONG),
+  replaceLinks: (id: string, links: string[], o?: WaitOpt) =>
+    call<{ property_id: string; links: ReelsLink[]; refresh: ReelsRefresh | null }>("PUT", `/properties/${id}/links${waitQuery(o)}`, { links }, undefined, LONG),
   updateAddress: (id: string, address: string) => call<unknown>("PATCH", `/properties/${id}`, { address }),
   refresh: (id: string, requestedBy: string) => call<{ refresh: ReelsRefresh }>("POST", `/properties/${id}/refresh`, { requested_by: requestedBy }, randomUUID(), LONG),
   getRefresh: (refreshId: string) => call<ReelsRefresh>("GET", `/refreshes/${refreshId}`, undefined, undefined, LONG),
