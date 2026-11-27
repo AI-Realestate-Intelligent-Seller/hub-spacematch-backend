@@ -43,6 +43,20 @@ export const config = {
     worker: { url: env.CMA_WORKER_URL?.replace(/\/+$/, ""), secret: env.CMA_WORKER_SECRET, port: env.CMA_WORKER_PORT },
   },
 
+  reelStudio: {
+    testPayments: env.REEL_TEST_PAYMENTS === undefined ? env.NODE_ENV !== "production" : env.REEL_TEST_PAYMENTS === "true",
+    recipient: env.REEL_ZELLE_RECIPIENT,
+    confirmers: splitList(env.REEL_PAYMENT_CONFIRMERS),
+    alertEmail: env.REEL_PAYMENT_ALERT_EMAIL,
+    driveAccount: env.REEL_DRIVE_SERVICE_ACCOUNT,
+    driveKey: env.REEL_DRIVE_PRIVATE_KEY,
+    driveFolders: env.REEL_DRIVE_FOLDERS,
+    scribeKey: env.REEL_SCRIBE_KEY,
+    plannerKey: env.REEL_PLANNER_KEY,
+    plannerModel: env.REEL_PLANNER_MODEL,
+    editingConfigured: !!(env.REEL_SCRIBE_KEY && env.REEL_PLANNER_KEY && env.REEL_PLANNER_MODEL),
+  },
+
   reels: {
     url: env.REELS_API_URL.replace(/\/+$/, ""),
     key: env.REELS_API_KEY,

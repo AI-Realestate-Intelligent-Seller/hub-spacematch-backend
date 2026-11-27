@@ -1,0 +1,1 @@
+ALTER TABLE "reel_assets" ALTER COLUMN "size" SET DATA TYPE bigint;

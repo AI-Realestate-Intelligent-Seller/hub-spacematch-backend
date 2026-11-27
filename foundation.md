@@ -375,3 +375,21 @@ Quick check: `curl localhost:4000/api/v1/health`
 | 2 | Email sending (SMTP mailer, code template) | ✅ built; ⏳ waiting for SMTP keys (`MAIL_MODE=off` until then) |
 | 2 | Tests | ✅ auth e2e script; ⏳ Vitest unit tests with the first feature module |
 | 3 | Vercel deployment (preview + production), Sentry | after step 2 |
+
+## Reel Studio
+
+The React `/reels` page uses `/api/v1/reel-studio`. Orders, revisions, approvals, and job claims live in this Postgres database. The payment confirmer must be an active admin or ops user whose email is in `REEL_PAYMENT_CONFIRMERS`. Zelle settlement is verified in the bank before staff approves it in the Hub.
+
+1. Apply the database migrations to a test database. Set the Reel Studio environment variables from `.env.example` on the API and worker.
+2. Use a private S3-compatible bucket. If the storage endpoint enforces browser CORS, allow the frontend origin to PUT upload parts and GET or HEAD signed downloads. Enable SMTP to receive payment-review and delivery emails.
+3. For team Drive, enable the Google Drive API for the service account's project, grant that account read access to the assigned folders, and assign the folder IDs on the corresponding Express user profiles. Device uploads work without Drive.
+4. In Render, create a separate Blueprint with path `backend/render.reel-worker.yaml`. It starts a Docker background worker that polls the same Postgres queue used by the Vercel API. Supply the matching database, private storage, and AI credentials directly in the service environments. The existing Vercel frontend rewrite continues to point at Express. Video uploads and downloads use signed storage URLs.
+5. For live payment review, set `REEL_ZELLE_RECIPIENT` and `REEL_PAYMENT_CONFIRMERS` on the Vercel API. On Render, set `REEL_PAYMENT_ALERT_EMAIL` or `REEL_PAYMENT_CONFIRMERS` and the existing SMTP settings to send alerts. Set the same `REEL_DRIVE_*` settings on both services if accepting clips from team Drive. The Blueprint starts with a paid 1 CPU, 2 GB worker.
+6. For local operation, build the API and run `npm run reel-worker` with FFmpeg and FFprobe installed. The worker processes one edit at a time and runs a separate notification loop.
+7. Sign in as an agent or staff member and open **Profile → Add test request**. Upload or select a clip, place the order, and mark the test payment sent. Return to **Approve requests** and approve it. Verify a repeated approval results in one job and all requested MP4s are downloadable. Test payments are enabled by default outside production. For the hosted test deployment, set `REEL_TEST_PAYMENTS=true` on both the **Vercel Express API project** and the **Render reel worker**, then redeploy both. Agents can create and approve their own test requests. Real payments retain their designated staff approval requirement. Test requests use the regular render queue without a bank transfer or ledger revenue. Set the flag to `false` on both services and redeploy them when testing ends. When AI credentials are absent, the worker can render approved test orders by joining clips in order and applying branding and export settings. Provide the transcription and planner credentials to test AI editing and captions.
+
+### Legacy cutover
+
+Pause the legacy Reel Studio scheduler and order actions and reconcile any open card checkout or in-flight render before taking the final snapshot. Export Convex with file storage and extract it to a private directory. After building the backend, run `npm run reel-import -- <extracted-snapshot>` to validate the files and orders. Run the same command with `--apply` against the intended database and storage when ready. The importer preserves open memo codes, free-order history, revisions, paid amounts, delivered files, and historical credits. Imported queued orders start when the new worker runs. Historical MP4s remain downloadable. Caption-only edits require an edit timeline from the new worker.
+
+The replacement supports device uploads, assigned team Drive clips, uploaded editing references, and original audio. The archived team B-roll and licensed music catalogs, live trend refresh, per-order worker costs, and the legacy Stripe checkout still require separate migration work.

@@ -19,7 +19,10 @@
     "worker:start": "node dist/worker.js",
     "test:cma": "tsx --test tests/cma/*.test.ts",
     "test:cma:e2e": "node tests/cma.e2e.mjs",
-    "test:connectors": "tsx --test tests/connectors/*.test.ts"
+    "test:connectors": "tsx --test tests/connectors/*.test.ts",
+    "reel-worker": "node dist/reel-worker.js",
+    "reel-import": "node dist/cli/import-reel-studio.js",
+    "test:reels": "node --import tsx --test tests/reels/*.test.ts"
   },
   "license": "UNLICENSED",
   "type": "module",

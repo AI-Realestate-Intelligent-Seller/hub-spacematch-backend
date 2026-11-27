@@ -20,3 +20,4 @@ export * from "../modules/listing-social/listing-social.model.js";
 export * from "../modules/cma/cma.model.js";
 export * from "../modules/cma-builder/cma-builder.model.js";
 export * from "../modules/forms/form.model.js";
+export * from "../modules/reel-studio/reel.model.js";

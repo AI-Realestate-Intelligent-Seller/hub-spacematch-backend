@@ -19,6 +19,7 @@ import { listingSocialRoutes } from "./listing-social/listing-social.routes.js";
 import { listingRoutes, portalRoutes } from "./listings/listing.routes.js";
 import { marketMeRoutes, publicReviewRoutes } from "./market-me/market-me.routes.js";
 import { openHouseRoutes } from "./open-houses/open-house.routes.js";
+import { reelStudioRoutes } from "./reel-studio/reel.routes.js";
 import { pastClientRoutes } from "./past-clients/past-client.routes.js";
 import { publicRosterRoutes, userRoutes } from "./users/user.routes.js";
 import { publicVendorRoutes, vendorRoutes } from "./vendors/vendor.routes.js";
@@ -50,6 +51,7 @@ export function moduleRoutes(): Router {
   router.use("/public/roster", publicRosterRoutes);
   router.use("/announcements", announcementRoutes);
   router.use("/ad-orders", adOrderRoutes);
+  router.use("/reel-studio", reelStudioRoutes);
   router.use("/cma", cmaRoutes);
   router.use("/cma-worker", cmaWorkerRoutes);
   router.use("/cma-reports", cmaReportRoutes);

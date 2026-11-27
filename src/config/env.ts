@@ -1,6 +1,8 @@
 // Loads and validates every environment variable once, at startup.
 // This is the ONLY file in the codebase that reads process.env.
 import "dotenv/config";
+import { readFileSync } from "node:fs";
+import { parse as parseDotenv } from "dotenv";
 import { z } from "zod";
 
 const optionalString = z
@@ -41,6 +43,17 @@ const EnvSchema = z.object({
   AUTH_SECRET: optionalString.refine(v => v === undefined || v.length >= 32, {
     message: "AUTH_SECRET must be at least 32 characters",
   }),
+
+  REEL_TEST_PAYMENTS: z.enum(["true", "false"]).optional(),
+  REEL_ZELLE_RECIPIENT: optionalString,
+  REEL_PAYMENT_CONFIRMERS: z.string().default(""),
+  REEL_PAYMENT_ALERT_EMAIL: optionalString,
+  REEL_DRIVE_SERVICE_ACCOUNT: optionalString,
+  REEL_DRIVE_PRIVATE_KEY: optionalString,
+  REEL_DRIVE_FOLDERS: z.string().default("{}"),
+  REEL_SCRIBE_KEY: optionalString,
+  REEL_PLANNER_KEY: optionalString,
+  REEL_PLANNER_MODEL: optionalString,
 
   GOOGLE_OAUTH_CLIENT_ID: optionalString,
   GOOGLE_OAUTH_CLIENT_SECRET: optionalString,
@@ -134,7 +147,20 @@ const EnvSchema = z.object({
 export type Env = z.infer<typeof EnvSchema>;
 
 function loadEnv(): Env {
-  const parsed = EnvSchema.safeParse(process.env);
+  const values = { ...process.env };
+  if (!values.REEL_SCRIBE_KEY?.trim()) {
+    values.REEL_SCRIBE_KEY = values.ELEVENLABS_API_KEY?.trim();
+    if (!values.REEL_SCRIBE_KEY && values.NODE_ENV !== "production") {
+      // ElevenLabs onboarding writes this key to the workspace root, while the API loads backend/.env.
+      try {
+        const workspaceEnv = readFileSync(new URL("../../../.env", import.meta.url), "utf8");
+        values.REEL_SCRIBE_KEY = parseDotenv(workspaceEnv).ELEVENLABS_API_KEY;
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+      }
+    }
+  }
+  const parsed = EnvSchema.safeParse(values);
   if (!parsed.success) {
     const problems = parsed.error.issues
       .map(i => `  - ${i.path.join(".")}: ${i.message}`)
