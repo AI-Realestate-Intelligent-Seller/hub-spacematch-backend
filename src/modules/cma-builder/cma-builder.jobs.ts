@@ -59,7 +59,7 @@ export async function runCollect(payload: Record<string, unknown>): Promise<void
   poll.unref();
   const started = Date.now();
   try {
-    report = await advance(report, ["queued", "collecting", "normalizing", "analyzing"], "collecting", `Collecting from ${provider.label}`, { collectAttempts: report.collectAttempts + 1, errorMessage: null });
+    report = await advance(report, [report.status as ReportStatus], "collecting", `Collecting from ${provider.label}`, { collectAttempts: report.collectAttempts + 1, errorMessage: null });
     let publicCandidates: Awaited<ReturnType<typeof research>>["candidates"] = [];
     try {
       const key = addressKey(listing.address);
@@ -67,10 +67,18 @@ export async function runCollect(payload: Record<string, unknown>): Promise<void
       const prior = payload.refreshResearch === true ? undefined : (await repo.listReports(report.listingId)).map(r => r.content.research).find(r =>
         r?.status === "complete" && r.addressKey === key && Date.now() - Date.parse(r.collectedAt) < maxAge,
       );
+      // A listing saved with only its street ("5950 S Sangamon St") can't be geocoded: borrow city/state/ZIP
+      // from the CMA subject for the same address.
+      const s = report.subject;
+      const lookup = listing.address.includes(",") || addressKey(s.address) !== key ? listing.address
+        : [listing.address, s.city, [s.state, s.zip].filter(Boolean).join(" ")].filter(Boolean).join(", ");
       const intelligence = prior ?? await research(listing.address, controller.signal, async note => {
         await repo.updateReport(reportId, { progressNote: note }, ["collecting"]);
-      });
+      }, lookup);
       controller.signal.throwIfAborted();
+      await log(intelligence.status === "complete" || intelligence.status === "partial" ? "info" : "warn",
+        `Property research ${prior ? "reused from cache" : "ran"}: ${intelligence.status}, ${intelligence.county?.name ?? "no county"}, ${intelligence.candidates.length} public-record sales found`,
+        { lookup, issues: intelligence.issues });
       const currentListing = await listingInfoById(report.listingId);
       if (currentListing && addressKey(currentListing.address) === intelligence.addressKey && addressKey(report.subject.address) === intelligence.addressKey) {
         const subject = { ...report.subject };
@@ -124,6 +132,7 @@ export async function runCollect(payload: Record<string, unknown>): Promise<void
       reportId, ...c, source: PUBLIC_RECORDS, manual: false, isFixture: false, selected: previousPublic.get(c.dedupeKey)?.selected ?? false,
       adjustments: previousPublic.get(c.dedupeKey)?.adjustments ?? [], collectedAt,
     })));
+    if (publicCandidates.length) await log("info", `${publicComps.length} public-record comparables added (of ${publicCandidates.length} found; the rest are outside the ${report.params.radiusMi} mi radius or ±35% of the home's size)`);
 
     report = await advance(report, ["normalizing"], "analyzing", "Scoring comparables and calculating");
     const all = await repo.listComps(reportId);
@@ -132,9 +141,12 @@ export async function runCollect(payload: Record<string, unknown>): Promise<void
     await repo.setSelection(reportId, [...new Set([...autoSelect(prelim, all.map(toEngineComp)), ...keepManual])]);
     report = await recalc(report);
     report = await advance(report, ["analyzing"], "ready_for_review", report.analysis?.status === "ok" ? "Ready for your review" : "Ready for review: not enough sold comparables for a value yet", { dataCollectedAt: collectedAt });
-    await snapshot(report, await repo.listComps(reportId));
-    await log("info", "Collection finished");
-    await notifyDone(report, listing);
+    // A report already available for review can be re-queued while these finish.
+    // Failures here must never change the status of that new collection run.
+    const followUps = await Promise.allSettled([snapshot(report, all), log("info", "Collection finished"), notifyDone(report, listing)]);
+    for (const result of followUps) {
+      if (result.status === "rejected") logger.warn("cma collection follow-up failed", { reportId, error: String(result.reason) });
+    }
   } catch (e) {
     if (e instanceof CancelledError || controller.signal.aborted) {
       await log("info", "Collection cancelled");
@@ -230,5 +242,6 @@ export async function recoverStale() {
       if (await enqueueUnique(providerById(r.provider)?.needsBrowser ? JOB_COLLECT_BROWSER : JOB_COLLECT, { reportId: r.id }, "reportId")) await wakeWorker("recover");
     }
   }
-  return { recovered: stuck.length };
+  const orphaned = await repo.failOrphanedQueuedReports(STALE_MINUTES, [JOB_COLLECT, JOB_COLLECT_BROWSER]);
+  return { recovered: stuck.length, failedOrphaned: orphaned.length };
 }

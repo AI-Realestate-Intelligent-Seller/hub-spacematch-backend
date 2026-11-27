@@ -2,13 +2,14 @@
 // Access: the listing's agent, or admins/ops (same rule as the listings module). Published versions
 // are frozen; any change after publishing starts a new draft version.
 import { config } from "../../config/index.js";
+import { getOrm } from "../../db/client.js";
 import { logger } from "../../utils/logger.js";
 import { reportObjectExists, signedDownloadUrl } from "../../integrations/storage/storage.client.js";
 import type { AuthUser } from "../../types/auth.js";
 import { badRequest, conflict, notFound, serviceUnavailable } from "../../utils/http-error.js";
 import { randomString } from "../../utils/id.js";
 import { factsForStreet } from "../cma/cma.service.js";
-import { enqueueUnique, latestExportJob } from "../jobs/job.service.js";
+import { enqueue, enqueueUnique, latestExportJob } from "../jobs/job.service.js";
 import { listingIdForToken, listingInfoById, manageableListing, marketingActivity } from "../listings/listing.service.js";
 import { addressKey } from "../property-intelligence/research.js";
 import { PUBLIC_RECORDS, subjectForAnalysis } from "../property-intelligence/review.js";
@@ -248,7 +249,20 @@ async function createVersion(a: {
 }
 
 async function enqueueCollect(reportId: string, needsBrowser: boolean, refreshResearch = false) {
-  if (await enqueueUnique(needsBrowser ? JOB_COLLECT_BROWSER : JOB_COLLECT, { reportId, refreshResearch }, "reportId")) await wakeWorker("collect");
+  await enqueue(needsBrowser ? JOB_COLLECT_BROWSER : JOB_COLLECT, { reportId, refreshResearch });
+  await wakeWorker("collect");
+}
+
+// The status transition admits one caller. An older job may still be sending its
+// completion notification, but the new run needs its own queue entry.
+async function requeueCollect(reportId: string, needsBrowser: boolean, from: ReportStatus[], patch: Parameters<typeof repo.updateReport>[1], refreshResearch = false) {
+  const updated = await getOrm().transaction(async tx => {
+    const row = await repo.updateReport(reportId, { ...patch, status: "queued", collectAttempts: 0 }, from, tx);
+    if (row) await enqueue(needsBrowser ? JOB_COLLECT_BROWSER : JOB_COLLECT, { reportId, refreshResearch }, new Date(), tx);
+    return row;
+  });
+  if (updated) await wakeWorker("collect");
+  return updated;
 }
 
 export async function get(actor: AuthUser, reportId: string) {
@@ -528,9 +542,14 @@ export async function refresh(actor: AuthUser | null, reportId: string, opts: { 
 
   if (EDITABLE.includes(report.status as ReportStatus)) {
     if (!provider.availability().available) throw conflict(provider.availability().reason ?? "The data source isn't available.");
-    const updated = await repo.updateReport(report.id, { status: "queued", provider: provider.id, params: { ...report.params, provider: provider.id }, errorMessage: null, progressNote: "Waiting to refresh property research", stages: [...report.stages, { stage: "queued", at: nowIso(), note: "re-collect" }] }, EDITABLE);
+    const updated = await requeueCollect(report.id, provider.needsBrowser, EDITABLE, {
+      provider: provider.id,
+      params: { ...report.params, provider: provider.id },
+      errorMessage: null,
+      progressNote: "Waiting for the collector",
+      stages: [...report.stages, { stage: "queued", at: nowIso(), note: "re-collect" }],
+    }, provider.id === "manual" && !opts.provider);
     if (!updated) throw conflict("This CMA changed. Reload and try again.");
-    await enqueueCollect(report.id, provider.needsBrowser, !opts.provider);
     if (actor) await audit(report, actor, `Re-collecting comparables with ${provider.label}`);
     return { id: report.id, version: report.version, status: "queued" as const };
   }
@@ -554,7 +573,7 @@ export async function refresh(actor: AuthUser | null, reportId: string, opts: { 
   // Carry over the agent's own comparables (and their adjustments and selection).
   const mine = sameAddress ? (await repo.listComps(report.id)).filter(c => c.manual) : [];
   await repo.insertComps(mine.map(({ id: _id, reportId: _r, createdAt: _c, updatedAt: _u, ...c }) => ({ ...c, reportId: next.id })));
-  if (collect) await enqueueCollect(next.id, provider.needsBrowser);
+  if (collect) await enqueueCollect(next.id, provider.needsBrowser, !!actor && provider.id === "manual" && !opts.provider);
   else await recalc(next);
   await audit(next, actor, `Started version ${next.version} from version ${report.version}${actor ? "" : " (weekly refresh)"}`);
   return { id: next.id, version: next.version, status: next.status };
@@ -568,14 +587,16 @@ export async function retry(actor: AuthUser, reportId: string) {
   if (!provider?.availability().available) throw conflict(provider?.availability().reason ?? "The data source isn't available. Start a new request with another source.");
   const open = await repo.findOpenReport(report.listingId);
   if (open) throw conflict(`Version ${open.version} is already open. Continue that one.`);
-  const updated = await repo
-    .updateReport(report.id, { status: "queued", errorMessage: null, progressNote: "Waiting for the collector", stages: [...report.stages, { stage: "queued", at: nowIso(), note: "retry" }] }, ["failed"])
+  const updated = await requeueCollect(report.id, provider.needsBrowser, ["failed"], {
+    errorMessage: null,
+    progressNote: "Waiting for the collector",
+    stages: [...report.stages, { stage: "queued", at: nowIso(), note: "retry" }],
+  })
     .catch(e => {
       if (isUniqueViolation(e)) throw conflict("Another CMA for this listing is open.");
       throw e;
     });
   if (!updated) throw conflict("This CMA changed. Reload and try again.");
-  await enqueueCollect(report.id, provider.needsBrowser);
   await audit(report, actor, "Retried collection");
   return { id: report.id, version: report.version, status: "queued" as const };
 }

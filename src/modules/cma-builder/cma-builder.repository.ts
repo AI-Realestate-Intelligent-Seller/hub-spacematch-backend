@@ -2,6 +2,7 @@
 import { and, desc, eq, inArray, lt, ne, notInArray, sql } from "drizzle-orm";
 import { getOrm } from "../../db/client.js";
 import { newId } from "../../utils/id.js";
+import { jobs } from "../jobs/job.model.js";
 import { listings } from "../listings/listing.model.js";
 import {
   type CmaComparableRow,
@@ -48,8 +49,8 @@ export async function findReport(id: string): Promise<CmaReportRow | undefined> 
 }
 
 /** Updates only while the report is in one of `onlyIf` (when given). Returns undefined if it wasn't. */
-export async function updateReport(id: string, patch: ReportPatch, onlyIf?: ReportStatus[]): Promise<CmaReportRow | undefined> {
-  const [row] = await getOrm()
+export async function updateReport(id: string, patch: ReportPatch, onlyIf?: ReportStatus[], db: Pick<ReturnType<typeof getOrm>, "update"> = getOrm()): Promise<CmaReportRow | undefined> {
+  const [row] = await db
     .update(cmaReports)
     .set({ ...patch, updatedAt: new Date() })
     .where(onlyIf ? and(eq(cmaReports.id, id), inArray(cmaReports.status, onlyIf)) : eq(cmaReports.id, id))
@@ -129,6 +130,22 @@ export async function staleActive(minutes: number): Promise<CmaReportRow[]> {
     .select()
     .from(cmaReports)
     .where(and(inArray(cmaReports.status, ["collecting", "normalizing", "analyzing"]), lt(cmaReports.updatedAt, new Date(Date.now() - minutes * 60_000))));
+}
+
+/** Old queue gaps: a report can be left queued after its previous job finishes. */
+export async function failOrphanedQueuedReports(minutes: number, kinds: string[]) {
+  return getOrm().update(cmaReports)
+    .set({ status: "failed", progressNote: "Collection stopped", errorMessage: "The collection job did not start. Retry to queue it again.", updatedAt: new Date() })
+    .where(and(
+      eq(cmaReports.status, "queued"),
+      lt(cmaReports.updatedAt, new Date(Date.now() - minutes * 60_000)),
+      sql`not exists (${getOrm().select({ id: jobs.id }).from(jobs).where(and(
+        inArray(jobs.kind, kinds),
+        inArray(jobs.status, ["queued", "running"]),
+        sql`${jobs.payload}->>'reportId' = ${cmaReports.id}`,
+      ))})`,
+    ))
+    .returning({ id: cmaReports.id });
 }
 
 // ---------- Comparables ----------

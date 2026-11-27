@@ -257,8 +257,20 @@ try {
   await sql`update cma_reports set provider = 'browser:mred', params = jsonb_set(params, '{provider}', '"browser:mred"'::jsonb) where id = ${revision.id}`;
   r = await call("GET", `/api/v1/listings/${listingId}/cma/defaults`, null, agent);
   check("old MRED draft defaults to an available source", r.status === 200 && r.json.providers.some(p => p.id === r.json.params.provider && p.available));
+  // Simulate a previous collection still doing its follow-up after the report became editable.
+  const previousJob = `cma-e2e-previous-${ts}`;
+  await sql`insert into jobs (id, kind, payload, status) values (
+    ${previousJob}, 'cmaBuilder.collect', ${sql.json({ reportId: revision.id })}, 'running'
+  )`;
   r = await call("POST", `/api/v1/cma-reports/${revision.id}/refresh`, { provider: "manual" }, agent);
   check("old MRED draft can continue with manual entry", r.status === 202 && r.json.id === revision.id);
+  const [newJob] = await sql`select id from jobs where kind = 'cmaBuilder.collect'
+    and payload->>'reportId' = ${revision.id} and id <> ${previousJob}`;
+  check("re-collect queues a fresh job while the previous job is still running", !!newJob);
+  if (newJob) await waitFor(async () => {
+    const report = await call("GET", `/api/v1/cma-reports/${revision.id}`, null, agent);
+    return report.json.status === "ready_for_review";
+  }, "re-collection to finish");
   r = await call("GET", `/api/v1/cma-reports/${revision.id}`, null, agent);
   check("draft records its replacement source", r.status === 200 && r.json.provider === "manual");
   check("switching source preserves manually entered comparables", r.json.comparables.some(c => c.address === "10 Revision Test Ln"));

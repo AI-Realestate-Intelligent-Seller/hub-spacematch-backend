@@ -92,7 +92,9 @@ const countyProviders: Readonly<Record<string, (context: ResearchContext) => Pro
   "17097": collectLake,
 };
 
-export async function research(address: string, signal: AbortSignal, progress: (note: string) => Promise<void>): Promise<Research> {
+/** `lookup` is what the geocoder is sent when it says more than `address` (e.g. the listing stores only the
+ *  street, but the CMA subject knows the ZIP); the result stays keyed by `address`. */
+export async function research(address: string, signal: AbortSignal, progress: (note: string) => Promise<void>, lookup = address): Promise<Research> {
   const r: Research = { addressKey: addressKey(address), collectedAt: new Date().toISOString(), status: "complete", issues: [], facts: {}, sales: [], assessments: [], candidates: [] };
   const issue = (source: string, message: string) => r.issues.push({ source, message });
   const attempt = async <T>(source: string, task: () => Promise<T>): Promise<T | undefined> => {
@@ -109,7 +111,7 @@ export async function research(address: string, signal: AbortSignal, progress: (
   const fact = (key: string, label: string, value: unknown, _dataset: "census", year?: unknown, unit?: string) =>
     record(key, label, value, { provider: "U.S. Census Bureau", dataset: "Address geographies", url: census }, year, unit);
   await progress("Resolving address");
-  const reply = await attempt("Census Geocoder", async () => await json(census, { address, benchmark: "Public_AR_Current", vintage: "Current_Current", format: "json" }, signal) as {
+  const reply = await attempt("Census Geocoder", async () => await json(census, { address: lookup, benchmark: "Public_AR_Current", vintage: "Current_Current", format: "json" }, signal) as {
     result?: { addressMatches?: { matchedAddress: string; coordinates: { x: number; y: number }; geographies: Record<string, { GEOID: string; NAME: string }[]> }[] };
   });
   const matches = Array.isArray(reply?.result?.addressMatches) ? reply.result.addressMatches : [];
