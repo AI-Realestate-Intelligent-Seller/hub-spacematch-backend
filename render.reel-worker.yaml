@@ -1,9 +1,8 @@
-# Render Dashboard → New Blueprint → Blueprint Path: backend/render.reel-worker.yaml
+# Render Dashboard → New Blueprint → Blueprint Path: render.reel-worker.yaml
 services:
   - type: worker
     name: spacematch-reel-worker
     runtime: docker
-    rootDir: backend
     dockerfilePath: ./Dockerfile.reel-worker
     dockerContext: .
     region: virginia
